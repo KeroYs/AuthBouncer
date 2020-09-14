@@ -1,0 +1,14 @@
+name: Bouncer
+main: com.github.multidestroy.Main
+version: 1.0 BETA
+commands:
+  login:
+    description: Login in player to the server
+  register:
+    description: Register player on the server
+  changepassword:
+    description: Change player's password
+  setemail:
+    description: Set up email to account
+  changeemail:
+    description: Change email on the account

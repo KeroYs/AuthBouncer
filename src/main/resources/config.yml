@@ -1,0 +1,70 @@
+#Set up information about your PostgreSQL database.
+database:
+  host:
+  port:
+  name:
+  username:
+  password:
+
+#Set up how plugin should work
+settings:
+  e-mail:
+    authorization: true
+    hint: true
+  login_attempt:
+    time: 60
+    ip_blockade:
+      blockade: true
+      tries:
+        same_ip:
+          low: 25
+          top: 30
+        different_ip:
+          low: 10
+          top: 15
+    blindness: true
+    slowness: true
+    moving_blockade: true
+  session: true
+
+#Set up messages that are send to the player in a specific situation.
+#Text after new '-' symbol, will be displayed in a new line.
+messages:
+  register:
+    - '§aYou have successfully signed up!'
+  login:
+    - '§aYou have successfully logged in!'
+  setemail:
+    - '§aCheck your e-mail to authorize operation!'
+  changeemail:
+    - '§aCheck your e-mail to authorize operation!'
+  changepassword:
+    - '§aYour password has been changed! Now log in again.'
+  session:
+    - '§aSession is ON until restart of the server!'
+
+#Text modification e.g. setting up colour, for messages.
+text_modifications:
+  colurs:
+    - '§a - Light green'
+    - '§b - Light blue'
+    - '§c - Rose'
+    - '§d - Light purple'
+    - '§e - Yellow'
+    - '§f - White'
+    - '§0 - Black'
+    - '§1 - Navy'
+    - '§2 - Green'
+    - '§3 - Cyan'
+    - '§4 - Red'
+    - '§5 - Purple'
+    - '§6 - Gold'
+    - '§7 - Light gray'
+    - '§8 - Gray'
+    - '§9 - Blue'
+  display_modifiers:
+    - '§k - Jumbled text'
+    - '§l - Bold'
+    - '§m - Strikeout'
+    - '§n - Underline'
+    - '§o - italic'
