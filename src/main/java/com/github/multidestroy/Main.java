@@ -13,6 +13,7 @@ import com.github.multidestroy.database.Database;
 import com.github.multidestroy.eventhandlers.*;
 import com.github.multidestroy.player.PlayerInfo;
 import com.github.multidestroy.system.LoginAttemptEvent;
+import com.github.multidestroy.system.LoginAttemptType;
 import com.github.multidestroy.system.PluginSystem;
 import com.github.multidestroy.system.ThreadSystem;
 import net.md_5.bungee.api.ChatMessageType;
@@ -47,7 +48,7 @@ public class Main extends JavaPlugin {
         passwordHasher = new PasswordHasher();
         system = new PluginSystem(passwordHasher);
         passwordThreadSystem = new ThreadSystem();
-        emailThreadSystem = new ThreadSystem();
+        //emailThreadSystem = new ThreadSystem();
 
         /*      Plugin message channel with bungeecord      */
         ChannelMessageReceiver channelMessageReceiver = new ChannelMessageReceiver(system, passwordThreadSystem, this);
@@ -59,13 +60,14 @@ public class Main extends JavaPlugin {
 
         //Force new players to log in
         getServer().getOnlinePlayers().forEach(player -> {
-            PlayerInfo playerFromDatabase;
-            if(player.isOnline())
-                if ((playerFromDatabase = database.getRegisteredPlayer(player.getName())) != null)
-                    system.saveNewPlayer(player.getName(), playerFromDatabase); //player is already registered
-                else
-                    system.saveNewPlayer(player.getName(), new PlayerInfo()); //player has never registered
-                Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player));
+            PlayerInfo playerInfo;
+            if ((playerInfo = database.getRegisteredPlayer(player.getName())) != null)
+                system.saveNewPlayer(player.getName(), playerInfo); //player is already registered
+            else
+                system.saveNewPlayer(player.getName(), playerInfo = new PlayerInfo()); //player has never registered
+
+            LoginAttemptType loginAttemptType = playerInfo.isRegistered() ? LoginAttemptType.LOGIN : LoginAttemptType.REGISTER;
+            Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player, loginAttemptType));
         });
 
         pluginStatusInfoText(settings);
@@ -97,7 +99,7 @@ public class Main extends JavaPlugin {
     private void registerEvents() {
         getServer().getPluginManager().registerEvents(new OnJoin(system, database,  settings), this);
         getServer().getPluginManager().registerEvents(new OnChat(system), this);
-        getServer().getPluginManager().registerEvents(new LoginAttempt(settings, system,this, passwordThreadSystem), this);
+        getServer().getPluginManager().registerEvents(new LoginAttempt(settings, system,this, passwordThreadSystem, config), this);
         getServer().getPluginManager().registerEvents(new PlayerInteraction(system, settings.moving_blockade), this);
         if(settings.session)
             getServer().getPluginManager().registerEvents(new LoginSession(system, settings), this);

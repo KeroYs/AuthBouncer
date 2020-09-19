@@ -1,6 +1,7 @@
 package com.github.multidestroy.configs;
 
 import com.github.multidestroy.Utils;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -36,6 +37,10 @@ public class Config {
 
     public int getIntegerSetting(String path) {
         return configuration.getInt(path);
+    }
+
+    public Configuration get() {
+        return configuration;
     }
 
     public void setup(File dataFolder, JavaPlugin plugin) {

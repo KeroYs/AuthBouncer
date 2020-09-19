@@ -1,10 +1,10 @@
 #Set up information about your PostgreSQL database.
 database:
-  host:
-  port:
-  name:
-  username:
-  password:
+  host: "host"
+  port: "port"
+  name: "name"
+  username: "username"
+  password: "password"
 
 #Set up how plugin should work
 settings:
@@ -12,6 +12,23 @@ settings:
     authorization: true
     hint: true
   login_attempt:
+    sound:
+      name: UI_BUTTON_CLICK
+      increasing_volume: true
+      max_volume: 100 #0-100
+      pitch: 0
+    title_text:
+      display_time:
+        fade_in: 30
+        stay: 40
+        fade_out: 30
+        period: 120
+      register:
+        title: '§4Register in!'
+        subtitle: 'Use /register'
+      login:
+        title: '§cLog in!'
+        subtitle: 'Use /login'
     time: 60
     ip_blockade:
       blockade: true

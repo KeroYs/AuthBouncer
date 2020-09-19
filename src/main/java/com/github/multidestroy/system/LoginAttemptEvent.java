@@ -1,5 +1,6 @@
 package com.github.multidestroy.system;
 
+import com.github.multidestroy.eventhandlers.LoginAttempt;
 import com.github.multidestroy.eventhandlers.LoginSession;
 import net.md_5.bungee.api.ChatMessageType;
 import org.bukkit.ChatColor;
@@ -12,10 +13,12 @@ public class LoginAttemptEvent extends PlayerEvent implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
     private boolean isCancelled;
+    private LoginAttemptType loginAttemptType;
 
-    public LoginAttemptEvent(Player player) {
+    public LoginAttemptEvent(Player player, LoginAttemptType loginAttemptType) {
         super(player);
         this.isCancelled = false;
+        this.loginAttemptType = loginAttemptType;
     }
 
     public void disallow() {
@@ -25,6 +28,10 @@ public class LoginAttemptEvent extends PlayerEvent implements Cancellable {
 
     public void notifyAboutLoginSessionAccessibility() {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, LoginSession.sessionHint);
+    }
+
+    public LoginAttemptType getType() {
+        return loginAttemptType;
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.github.multidestroy.configs.Settings;
 import com.github.multidestroy.database.Database;
 import com.github.multidestroy.player.PlayerInfo;
 import com.github.multidestroy.system.LoginAttemptEvent;
+import com.github.multidestroy.system.LoginAttemptType;
 import com.github.multidestroy.system.PluginSystem;
 import net.md_5.bungee.api.ChatMessageType;
 import org.bukkit.Bukkit;
@@ -23,15 +24,6 @@ public class OnJoin implements Listener {
     private PluginSystem system;
     private Database database;
     private Settings settings;
-    private static ItemStack helpBook;
-    static {
-        helpBook = new ItemStack(Material.WRITTEN_BOOK);
-        BookMeta bookMeta = (BookMeta) helpBook.getItemMeta();
-        bookMeta.setTitle(ChatColor.RED + "Help");
-        bookMeta.setAuthor("MultiDestroy");
-        bookMeta.setPages("There is a tutorial");
-        helpBook.setItemMeta(bookMeta);
-    }
 
     public OnJoin(PluginSystem system, Database database, Settings settings) {
         this.system = system;
@@ -65,10 +57,7 @@ public class OnJoin implements Listener {
     @EventHandler
     public void OnPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if(!player.getInventory().contains(helpBook))
-            if(player.getInventory().getItem(9) == null)
-                player.getInventory().setItem(9, helpBook); //To config!!!
-
+        PlayerInfo playerInfo = system.getPlayerInfo(player.getName());
         //set player's GameMode to survival
         if (player.getGameMode() != GameMode.SURVIVAL)
             player.setGameMode(GameMode.SURVIVAL);
@@ -76,11 +65,12 @@ public class OnJoin implements Listener {
         if (settings.session && system.isLoginSession(player.getName(), event.getPlayer().getAddress().getAddress())) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, LoginSession.sessionON);
             system.getPlayerInfo(player.getName()).setLoginStatus(true);
-        } else //Player must log in to the server
-            Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(event.getPlayer()));
+        } else { //Player must log in to the server
+            LoginAttemptType loginAttemptType = playerInfo.isRegistered() ? LoginAttemptType.LOGIN : LoginAttemptType.REGISTER;
+            Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player, loginAttemptType));
+        }
 
     }
-
 
     /**
      * If Player missed pre-login event kick him from the server

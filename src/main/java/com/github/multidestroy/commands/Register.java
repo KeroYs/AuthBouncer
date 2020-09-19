@@ -7,6 +7,8 @@ import com.github.multidestroy.database.Database;
 import com.github.multidestroy.player.PlayerActivityStatus;
 import com.github.multidestroy.player.PlayerGlobalRank;
 import com.github.multidestroy.player.PlayerInfo;
+import com.github.multidestroy.system.LoginAttemptEvent;
+import com.github.multidestroy.system.LoginAttemptType;
 import com.github.multidestroy.system.PluginSystem;
 
 import com.github.multidestroy.system.ThreadSystem;
@@ -73,16 +75,8 @@ public class Register implements CommandExecutor {
                                 player.sendMessage(successfulUsage);
                                 playerActivityStatus = PlayerActivityStatus.REGISTRATION;
 
-                                //Reset login attempt counter
-                                Bukkit.getScheduler().runTask(plugin, new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if(player.isOnline()) {
-                                            player.setLevel(settings.login_attempt_time);
-                                            player.setExp(1);
-                                        }
-                                    }
-                                });
+                                //New login attempt
+                                Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player, LoginAttemptType.REGISTER));
                             } else
                                 player.sendMessage(ChatColor.RED + "Server could not register you! Try a few minutes later.");
                         } else
