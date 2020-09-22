@@ -27,14 +27,4 @@ public class ThreadSystem {
         return threadLocksMap.computeIfAbsent(playerName, k -> new ReentrantLock()).tryLock();
     }
 
-   /* private void kickPlayer(String playerName) {
-        //TODO:
-        Bukkit.getScheduler().runTask(plugin, new Runnable() {
-            @Override
-            public void run() {
-                Bukkit.getPlayer(playerName).kickPlayer("wasd");
-            }
-        });
-    }*/
-
 }

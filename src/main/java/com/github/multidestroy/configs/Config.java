@@ -10,51 +10,40 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class Config {
 
     private FileConfiguration configuration;
-    private File file;
-
-    public Map<String, String> getDataBaseInfo() {
-        Map<String, String> dataBase = new HashMap<>();
-        dataBase.put("host", configuration.getString("database.host"));
-        dataBase.put("port", configuration.getString("database.port"));
-        dataBase.put("name", configuration.getString("database.name"));
-        dataBase.put("username", configuration.getString("database.username"));
-        dataBase.put("password", configuration.getString("database.password"));
-
-        return dataBase;
-    }
-
-    public String getMessage(String commandOrSession) {
-        return Utils.mergeListWithNewLines(configuration.getStringList("messages." + commandOrSession));
-    }
-
-    public boolean getBooleanSetting(String path) {
-        return configuration.getBoolean(path);
-    }
-
-    public int getIntegerSetting(String path) {
-        return configuration.getInt(path);
-    }
 
     public Configuration get() {
         return configuration;
     }
 
-    public void setup(File dataFolder, JavaPlugin plugin) {
+    public void setup(JavaPlugin plugin) {
         plugin.saveResource("config.yml", false);
-        file = new File(dataFolder, "config.yml");
+        File file = new File(plugin.getDataFolder(), "config.yml");
         configuration = YamlConfiguration.loadConfiguration(file);
     }
 
-    public void save() {
-        try {
-            configuration.save(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    /**
+     * @return Number placed between lower and upper compartment(low & top) in same_ip setting
+     */
+
+    public short getRandomNumberSameIp() {
+        int top = configuration.getInt("settings.login_attempt.ip_blockade.tries.same_ip.top");
+        int low = configuration.getInt("settings.login_attempt.ip_blockade.tries.same_ip.low");
+        return (short) (new Random().nextInt(top - low + 1) + low);
+    }
+
+    /**
+     * @return Number placed between lower and upper compartment(low & top) in different_ip setting
+     */
+
+    public short getRandomNumberDifferentIp() {
+        int top = configuration.getInt("settings.login_attempt.ip_blockade.tries.different_ip.top");
+        int low = configuration.getInt("settings.login_attempt.ip_blockade.tries.different_ip.low");
+        return (short) (new Random().nextInt(top - low + 1) + low);
     }
 
 }

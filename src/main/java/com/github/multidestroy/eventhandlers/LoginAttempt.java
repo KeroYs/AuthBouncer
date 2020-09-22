@@ -1,7 +1,7 @@
 package com.github.multidestroy.eventhandlers;
 
+import com.github.multidestroy.Messages;
 import com.github.multidestroy.configs.Config;
-import com.github.multidestroy.configs.Settings;
 import com.github.multidestroy.player.PlayerInfo;
 import com.github.multidestroy.system.LoginAttemptEvent;
 import com.github.multidestroy.system.LoginAttemptType;
@@ -21,20 +21,17 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitScheduler;
 
 import java.net.InetAddress;
 
 public class LoginAttempt implements Listener {
 
-    private Settings settings;
     private PluginSystem system;
     private JavaPlugin plugin;
     private ThreadSystem passwordThreadSystem;
     private Config config;
 
-    public LoginAttempt(Settings settings, PluginSystem system, JavaPlugin plugin, ThreadSystem passwordThreadSystem, Config config) {
-        this.settings = settings;
+    public LoginAttempt(PluginSystem system, JavaPlugin plugin, ThreadSystem passwordThreadSystem, Config config) {
         this.system = system;
         this.plugin = plugin;
         this.passwordThreadSystem = passwordThreadSystem;
@@ -53,10 +50,10 @@ public class LoginAttempt implements Listener {
         InetAddress ipAddress = player.getAddress().getAddress();
         LoginAttemptType loginAttemptType = event.getType();
         final int[] iteration = { 1 };
-        short time = settings.login_attempt_time;
+        int time = config.get().getInt("settings.login_attempt.time");
         float subtrahend = 1f / (float) time;
 
-        setPotionEffects(player);
+        setPotionEffects(player, time);
         {
             int period = config.get().getInt("settings.login_attempt.title_text.display_time.period");
             setTitle(event, player, playerInfo).runTaskTimer(plugin, 0, period);
@@ -71,36 +68,39 @@ public class LoginAttempt implements Listener {
             float soundMaxVolume = (float) config.get().getInt("settings.login_attempt.sound.max_volume") / 100;
             int soundPitch = config.get().getInt("settings.login_attempt.sound.pitch");
 
+            //Ip blockade
+            boolean isIpBlockadeON = config.get().getBoolean("settings.login_attempt.ip_blockade.blockade");
+
             new BukkitRunnable() {
 
                 public void run() {
 
                     if (!player.isOnline()) {
-                        removePotionEffects(player);
+                        endLoginAttempt(event, player, playerInfo);
                         cancel();
                     } else if (loginAttemptType == LoginAttemptType.REGISTER && playerInfo.isRegistered() ||
                             loginAttemptType == LoginAttemptType.LOGIN && playerInfo.isLoggedIn()) {
-                        player.resetTitle();
-                        removePotionEffects(player);
+                        endLoginAttempt(event, player, playerInfo);
                         cancel();
                     } else if (iteration[0] == time) {
                         endAfterCommandExecution(player, playerInfo, event).runTaskAsynchronously(plugin);
                         cancel();
+                    } else {
+
+                        if (isIpBlockadeON)
+                            if (playerInfo.canNotifyAboutSoonBlockade(config, ipAddress))
+                                player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                                        TextComponent.fromLegacyText(Messages.getColoredString("IP_BLOCKADE.NOTIFICATION")));
+
+
+                        if (soundMaxVolume != 0)
+                            playSound(player, sound, soundMaxVolume, soundIncreasingVolume, soundPitch, iteration[0], time);
+
+                        //Next iteration
+                        player.setLevel(time - iteration[0]);
+                        player.setExp(1 - (float) iteration[0] / time);
+                        iteration[0]++;
                     }
-
-                    if (settings.ip_blockade)
-                        if (playerInfo.canNotifyAboutSoonBlockade(settings, ipAddress))
-                            player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                                    TextComponent.fromLegacyText(ChatColor.GOLD + "Your IP address on that account might be blocked in a few next attempts"));
-
-
-                    if(soundMaxVolume != 0)
-                        playSound(player, sound, soundMaxVolume, soundIncreasingVolume, soundPitch, iteration[0], time);
-
-                    //Next iteration
-                    iteration[0]++;
-                    player.setLevel(player.getLevel() - 1);
-                    player.setExp(player.getExp() - subtrahend > 0 ? player.getExp() - subtrahend : 0);
                 }
             }.runTaskTimer(plugin, 0, 20); //period: 20 ticks mean 1 second
         }
@@ -112,23 +112,19 @@ public class LoginAttempt implements Listener {
             if(!system.isPlayerLoggedIn(event.getEntity().getName()))
                 event.setCancelled(true);
     }
-
+    
     private BukkitRunnable endAfterCommandExecution(Player player, PlayerInfo playerInfo, LoginAttemptEvent event) {
         return new BukkitRunnable() {
             @Override
             public void run() {
+                boolean isLoginSessionAvailable = config.get().getBoolean("settings.session");
                 passwordThreadSystem.lock(player.getName());
                 try {
                     Bukkit.getScheduler().runTask(plugin, () -> {
-                        player.setLevel(0);
-                        player.setExp(0);
-                        removePotionEffects(player);
-                        if (playerInfo.isLoggedIn()) {
-                            player.resetTitle();
-                            if (settings.session)
-                                event.notifyAboutLoginSessionAccessibility();
-                        } else
+                        if (!playerInfo.isLoggedIn())
                             event.disallow();
+
+                        endLoginAttempt(event, player, playerInfo);
                     });
                 } finally {
                     passwordThreadSystem.unlock(player.getName());
@@ -145,11 +141,11 @@ public class LoginAttempt implements Listener {
         int fadeOutTime = config.get().getInt("settings.login_attempt.title_text.display_time.fade_out");
 
         if (event.getType() == LoginAttemptType.LOGIN) {
-            title = ChatColor.translateAlternateColorCodes('§', config.get().getString("settings.login_attempt.title_text.login.title"));
-            subtitle = ChatColor.translateAlternateColorCodes('§', config.get().getString("settings.login_attempt.title_text.login.subtitle"));
+            title = Messages.getColoredString("LOGIN_ATTEMPT.LOGIN.TITLE");
+            subtitle = Messages.getColoredString("LOGIN_ATTEMPT.LOGIN.SUBTITLE");
         } else {
-            title = ChatColor.translateAlternateColorCodes('§', config.get().getString("settings.login_attempt.title_text.register.title"));
-            subtitle = ChatColor.translateAlternateColorCodes('§', config.get().getString("settings.login_attempt.title_text.register.subtitle"));
+            title = Messages.getColoredString("LOGIN_ATTEMPT.REGISTER.TITLE");
+            subtitle = Messages.getColoredString("LOGIN_ATTEMPT.REGISTER.SUBTITLE");
         }
 
         return new BukkitRunnable() {
@@ -168,18 +164,25 @@ public class LoginAttempt implements Listener {
         };
     }
 
-    private void setPotionEffects(Player player) {
-        if (settings.blindness)
-            player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, settings.login_attempt_time * 21, 4));
-        if (settings.slowness)
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, settings.login_attempt_time * 21, 4));
+    private void setPotionEffects(Player player, int time) {
+        boolean blindness = config.get().getBoolean("settings.login_attempt.blindness");
+        boolean slowness = config.get().getBoolean("settings.login_attempt.slowness");
+
+        if (blindness)
+            player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, (time + 1) * 20, 4), true);
+        if (slowness)
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, (time + 1) * 20, 4), true);
     }
 
-    private void removePotionEffects(Player player) {
-        if (settings.blindness)
+    private void endLoginAttempt(LoginAttemptEvent event, Player player, PlayerInfo playerInfo) {
+        if(playerInfo.isLoggedIn()) {
             player.removePotionEffect(PotionEffectType.BLINDNESS);
-        if (settings.slowness)
             player.removePotionEffect(PotionEffectType.SLOW);
+            player.setLevel(0);
+            player.setExp(0);
+            player.sendTitle("", "", 0, 0, 0);
+        }
+        event.setCancelled(true);
     }
 
     private void playSound(Player player, Sound sound, float maxVolume, boolean increasingVolume, int pitch, int iteration, int time) {

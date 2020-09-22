@@ -2,7 +2,6 @@ package com.github.multidestroy.system;
 
 import com.github.multidestroy.PasswordHasher;
 import com.github.multidestroy.Utils;
-import com.github.multidestroy.configs.Settings;
 import com.github.multidestroy.player.PlayerInfo;
 
 import java.net.InetAddress;

@@ -4,39 +4,65 @@ import com.github.multidestroy.configs.Config;
 import com.github.multidestroy.player.PlayerGlobalRank;
 import com.github.multidestroy.player.PlayerInfo;
 import com.github.multidestroy.player.PlayerActivityStatus;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.net.InetAddress;
 import java.time.Instant;
 import java.util.Map;
 import java.sql.*;
+import java.util.logging.Logger;
 
 public class Database {
 
     private DataSource dataSource;
+    private boolean connected;
+    private Config config;
 
     public Database(Config config) {
-        Map<String, String> databaseInfo = config.getDataBaseInfo();
-        Connection conn = null;
+        this.connected = false;
+        this.config = config;
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+    }
 
+    public boolean isConnected() {
+        return connected;
+    }
+
+    public void close() {
+        dataSource.close();
+    }
+
+    public boolean reloadDataSource() {
         try {
-            dataSource = new DataSource(databaseInfo);
+            dataSource = new DataSource(config);
+            return connected = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return connected = false;
+        }
+    }
+
+    public void saveDefaultTables() {
+        Connection conn = null;
+        try {
             conn = dataSource.getConnection();
+            Connection finalConn = conn;
 
             //Create tables if they do not exist
             createPlayersTable(conn);
             createActivityHistoryTable(conn);
             createIpBlockadesTable(conn);
-
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            closeConn(conn);
         }
-        closeConn(conn);
+
     }
 
     public boolean savePlayer(String playerName, String hashedPassword, PlayerGlobalRank rank, Instant created) {
@@ -173,8 +199,7 @@ public class Database {
                 String email = rs.getString(2);
                 String ip_address = rs.getString(3);
                 playerInfo = new PlayerInfo(email, hashedPassword, ip_address, false, true, false);
-            }
-            else
+            } else
                 playerInfo = new PlayerInfo();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -251,10 +276,6 @@ public class Database {
                 "ip_address VARCHAR(30) NOT NULL," + //Ip address of locked account
                 "to_check BOOLEAN NOT NULL DEFAULT FALSE)"; //Represents if the player decided if this blockade should be checked by administrator
         conn.createStatement().execute(query);
-    }
-
-    private void createRanksTable(Connection conn) {
-        //TODO
     }
 
     private void closeConn(Connection conn) {

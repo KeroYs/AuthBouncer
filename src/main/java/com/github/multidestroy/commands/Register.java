@@ -1,9 +1,10 @@
 package com.github.multidestroy.commands;
 
+import com.github.multidestroy.Messages;
 import com.github.multidestroy.PasswordHasher;
 import com.github.multidestroy.configs.Config;
-import com.github.multidestroy.configs.Settings;
 import com.github.multidestroy.database.Database;
+import com.github.multidestroy.eventhandlers.LoginSession;
 import com.github.multidestroy.player.PlayerActivityStatus;
 import com.github.multidestroy.player.PlayerGlobalRank;
 import com.github.multidestroy.player.PlayerInfo;
@@ -13,7 +14,6 @@ import com.github.multidestroy.system.PluginSystem;
 
 import com.github.multidestroy.system.ThreadSystem;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -26,19 +26,16 @@ public class Register implements CommandExecutor {
 
     private Database database;
     private PluginSystem system;
-    private String successfulUsage;
     private PasswordHasher passwordHasher;
-    private Settings settings;
+    private Config config;
     private ThreadSystem threadSystem;
     private JavaPlugin plugin;
-    public final static String correctUsage = ChatColor.RED + "/register <password> <password>";
 
-    public Register(PluginSystem system, Database database, Config config, PasswordHasher passwordHasher, Settings settings, ThreadSystem threadSystem, JavaPlugin plugin) {
+    public Register(PluginSystem system, Database database, Config config, PasswordHasher passwordHasher, ThreadSystem threadSystem, JavaPlugin plugin) {
         this.system = system;
         this.database = database;
-        this.successfulUsage = config.getMessage("register");
         this.passwordHasher = passwordHasher;
-        this.settings = settings;
+        this.config = config;
         this.threadSystem = threadSystem;
         this.plugin = plugin;
     }
@@ -51,11 +48,11 @@ public class Register implements CommandExecutor {
                 if (args.length == 2) {
                     Bukkit.getScheduler().runTaskAsynchronously(plugin, asyncTask((Player) sender, args[0], args[1]));
                 } else
-                    sender.sendMessage(correctUsage);
+                    sender.sendMessage(Messages.getColoredString("COMMAND.REGISTER.CORRECT_USAGE"));
             } else
-                sender.sendMessage(ChatColor.RED + "You are already registered!");
+                sender.sendMessage(Messages.getColoredString("COMMAND.REGISTER.ALREADY_REGISTERED"));
         } else
-            sender.sendMessage(ChatColor.RED + "Command is not available to use by the console!");
+            sender.sendMessage(Messages.getColoredString("COMMAND.CONSOLE.LOCK"));
         return false;
     }
 
@@ -72,22 +69,29 @@ public class Register implements CommandExecutor {
                             if(database.savePlayer(player.getName(), hashedPassword, PlayerGlobalRank.PLAYER, Instant.now())) {
                                 system.setPlayerRegisterStatus(player.getName(), true, hashedPassword);
 
-                                player.sendMessage(successfulUsage);
+                                player.sendMessage(Messages.getColoredString("COMMAND.REGISTER.SUCCESS"));
                                 playerActivityStatus = PlayerActivityStatus.REGISTRATION;
 
-                                //New login attempt
-                                Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player, LoginAttemptType.REGISTER));
+
+                                if(config.get().getBoolean("settings.login_attempt.login_after_registration")) //Player has to log in after registration
+                                    Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player, LoginAttemptType.LOGIN));
+                                else {
+                                    playerInfo.setLoginStatus(true);
+                                    playerInfo.setLastSuccessfulIp(player.getAddress().getAddress());
+                                    if(config.get().getBoolean("settings.session"))
+                                        LoginSession.notifyAboutSessionAccessibility(player, plugin);
+                                }
                             } else
-                                player.sendMessage(ChatColor.RED + "Server could not register you! Try a few minutes later.");
+                                player.sendMessage(Messages.getColoredString("ERROR"));
                         } else
-                            player.sendMessage(ChatColor.RED + "Passwords are not equals!");
+                            player.sendMessage(Messages.getColoredString("COMMAND.PASSWORD.NOT_EQUAL"));
                     } else
-                        player.sendMessage(ChatColor.RED + "Password needs to be long at least 5 chars!");
+                        player.sendMessage(Messages.getColoredString("COMMAND.REGISTER.PASSWORD.RESTRICTION"));
                 } finally {
                     threadSystem.unlock(player.getName());
                 }
             } else
-                player.sendMessage(ChatColor.RED + "Wait until previous command is done!");
+                player.sendMessage(Messages.getColoredString("COMMAND.THREAD.LOCK"));
 
             if(playerActivityStatus != null)
                 database.saveLoginAttempt(player, playerActivityStatus, Instant.now());

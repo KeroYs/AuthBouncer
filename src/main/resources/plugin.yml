@@ -4,8 +4,10 @@ version: 1.0 BETA
 commands:
   login:
     description: Login in player to the server
+    aliases: [l]
   register:
     description: Register player on the server
+    aliases: [r]
   changepassword:
     description: Change player's password
   setemail:

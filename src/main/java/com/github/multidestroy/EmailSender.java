@@ -15,7 +15,7 @@ public class EmailSender {
     private Session session;
 
     EmailSender() {
-        Properties properties = new Properties();
+      /*  Properties properties = new Properties();
 
         properties.put("mail.smtp.auth", "true");
         properties.put("mail.smtp.starttls.enable", "true");
@@ -43,7 +43,7 @@ public class EmailSender {
         } catch (MessagingException e) {
             e.printStackTrace();
         }
-        System.out.println("Wyslano e-maila!");
+        System.out.println("Wyslano e-maila!");*/
     }
 
     public boolean sendEmail() {

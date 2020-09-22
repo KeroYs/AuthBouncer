@@ -1,6 +1,9 @@
 package com.github.multidestroy;
 
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
@@ -25,18 +28,26 @@ public class Utils {
         return true;
     }
 
-    public static boolean isCommand(String command, String commandName) {
-        command = command.toLowerCase();
-        int i = 0;
-        if(command.length() < commandName.length())
+    public static boolean isCommand(String message, String commandName, JavaPlugin plugin) {
+        List<String> aliases = plugin.getCommand(commandName).getAliases();
+        if (!startsWithCommand(message, commandName)) {
+            for (String alias : aliases)
+                if (startsWithCommand(message, alias))
+                    return true;
             return false;
-
-        while(commandName.length() != i) {
-            if (command.charAt(i) != commandName.charAt(i))
-                return false;
-            i++;
         }
         return true;
     }
 
+
+    private static boolean startsWithCommand(String message, String command) {
+        int offSet = 0;
+        if (message.charAt(0) == '/')
+            offSet = 1;
+
+        if(message.startsWith(command, offSet))
+            return message.length() == command.length() + offSet || message.charAt(command.length() + offSet) == ' ';
+        return false;
+
+    }
 }

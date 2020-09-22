@@ -37,22 +37,27 @@ public class ChannelMessageReceiver implements PluginMessageListener {
     }
 
     private void onDisconnection(String playerName) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, new Runnable() {
-            @Override
-            public void run() {
-                threadSystem.lock(playerName);
-                try {
-                    if (pluginSystem.isPlayerInSystem(playerName))
-                        pluginSystem.getPlayerInfo(playerName).setLoginStatus(false);
-                } finally {
-                    threadSystem.unlock(playerName);
-                }
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            threadSystem.lock(playerName);
+            try {
+                if (pluginSystem.isPlayerInSystem(playerName))
+                    pluginSystem.getPlayerInfo(playerName).setLoginStatus(false);
+            } finally {
+                threadSystem.unlock(playerName);
             }
         });
     }
 
-    public void checkIfBungee(JavaPlugin plugin) {
-        //check if the server is Spigot/Paper (because of the spigot.yml file)
+    public boolean checkIfSpigot() {
+        return  plugin.getServer().getVersion().contains( "Spigot" ) || plugin.getServer().getVersion().contains( "Paper" );
+    }
+
+    public boolean checkIfBungee(JavaPlugin plugin) {
+        return plugin.getServer().spigot().getConfig().getConfigurationSection("settings").getBoolean("settings.bungeecord");
+    }
+/*
+//TODO logger
+//check if the server is Spigot/Paper (because of the spigot.yml file)
         if (!plugin.getServer().getVersion().contains( "Spigot" ) && !plugin.getServer().getVersion().contains( "Paper" )) {
             plugin.getLogger().severe( "You probably run CraftBukkit... Please update atleast to spigot for this to work..." );
             plugin.getLogger().severe( "Plugin disabled!" );
@@ -64,7 +69,7 @@ public class ChannelMessageReceiver implements PluginMessageListener {
             plugin.getLogger().severe( "If the server is already hooked to BungeeCord, please enable it into your spigot.yml aswell." );
             plugin.getLogger().severe( "Plugin disabled!" );
             plugin.getServer().getPluginManager().disablePlugin(plugin);
-        }
-    }
+ */
+
 
 }

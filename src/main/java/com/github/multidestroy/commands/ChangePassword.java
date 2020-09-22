@@ -1,5 +1,6 @@
 package com.github.multidestroy.commands;
 
+import com.github.multidestroy.Messages;
 import com.github.multidestroy.PasswordHasher;
 import com.github.multidestroy.configs.Config;
 import com.github.multidestroy.database.Database;
@@ -9,7 +10,6 @@ import com.github.multidestroy.system.LoginAttemptEvent;
 import com.github.multidestroy.system.PluginSystem;
 import com.github.multidestroy.system.ThreadSystem;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -25,14 +25,14 @@ public class ChangePassword implements CommandExecutor {
     private LoginAttemptEvent loginAttemptEvent;
     private String successfulUsage;
     private PasswordHasher passwordHasher;
+    private Config config;
     private JavaPlugin plugin;
     private ThreadSystem threadSystem;
-    public static String correctUsage = ChatColor.RED + "/changepassword <curr_pass> <new_pass> <new_pass>";
 
     public ChangePassword(PluginSystem system, Database database, Config config, PasswordHasher passwordHasher, ThreadSystem threadSystem, JavaPlugin plugin) {
         this.system = system;
         this.database = database;
-        this.successfulUsage = config.getMessage("changepassword");
+        this.config = config;
         this.passwordHasher = passwordHasher;
         this.threadSystem = threadSystem;
         this.plugin = plugin;
@@ -44,9 +44,9 @@ public class ChangePassword implements CommandExecutor {
             if(args.length == 3) {
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, asyncTask((Player) sender, args[0], args[1], args[2]));
             } else
-                sender.sendMessage(correctUsage);
+                sender.sendMessage(Messages.getColoredString("COMMAND.CHANGEPASSWORD.CORRECT_USAGE"));
         } else
-            sender.sendMessage(ChatColor.RED + "Command is not available to use by the console!");
+            sender.sendMessage(Messages.getColoredString("COMMAND.CONSOLE.LOCK"));
         return false;
     }
 
@@ -65,21 +65,21 @@ public class ChangePassword implements CommandExecutor {
                                 if(database.changePassword(player.getName(), hashedNewPassword)) {
                                     //if password was successfully saved in the database
                                     playerInfo.setHashedPassword(hashedNewPassword);
-                                    player.sendMessage(successfulUsage);
+                                    player.sendMessage(Messages.getColoredString("COMMAND.CHANGEPASSWORD.SUCCESS"));
                                     playerActivityStatus = PlayerActivityStatus.PASSWORD_CHANGE;
                                 } else
-                                    player.sendMessage(ChatColor.RED + "Password could not be changed! Try a few minutes later.");
+                                    player.sendMessage(Messages.getColoredString("ERROR"));
                             } else
-                                player.sendMessage(ChatColor.RED + "Passwords are not equals!");
+                                player.sendMessage(Messages.getColoredString("COMMAND.PASSWORD.NOT_EQUAL"));
                         } else
-                            player.sendMessage(ChatColor.RED + "Password needs to be long at least 5 chars!");
+                            player.sendMessage(Messages.getColoredString("COMMAND.REGISTER.PASSWORD.RESTRICTION"));
                     } else
-                        player.sendMessage(ChatColor.RED + "Current password is not correct");
+                        player.sendMessage(Messages.getColoredString("COMMAND.CHANGEPASSWORD.CURRENT.WRONG"));
                 } finally {
                     threadSystem.unlock(player.getName());
                 }
             } else
-                player.sendMessage(ChatColor.RED + "Wait until previous command is done!");
+                player.sendMessage(Messages.getColoredString("COMMAND.THREAD.LOCK"));
 
             if(playerActivityStatus != null)
                 database.saveLoginAttempt(player, playerActivityStatus, Instant.now());

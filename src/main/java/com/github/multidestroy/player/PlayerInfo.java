@@ -1,6 +1,6 @@
 package com.github.multidestroy.player;
 
-import com.github.multidestroy.configs.Settings;
+import com.github.multidestroy.configs.Config;
 
 import java.net.InetAddress;
 import java.util.HashMap;
@@ -91,11 +91,11 @@ public class PlayerInfo {
      * @return TRUE - if counter[0] is equal to 0, FALSE if it's bigger
      */
 
-    public boolean lowerBlockadeCounter(Settings settings, InetAddress ipAddress) {
+    public boolean lowerBlockadeCounter(Config config, InetAddress ipAddress) {
         String address = ipAddress.getHostAddress();
         Short[] counter;
         if((counter = blockadeCounter.get(address)) == null)
-            counter = setUpBlockadeCounter(settings, address);
+            counter = setUpBlockadeCounter(config, address);
 
         short left = (short) (counter[0] - 1);
         if(left > 0) {
@@ -107,11 +107,11 @@ public class PlayerInfo {
         }
     }
 
-    public boolean canNotifyAboutSoonBlockade(Settings settings, InetAddress ipAddress) {
+    public boolean canNotifyAboutSoonBlockade(Config config, InetAddress ipAddress) {
         String address = ipAddress.getHostAddress();
         Short[] counter = blockadeCounter.get(address);
         if(counter == null)
-            counter = setUpBlockadeCounter(settings, address);
+            counter = setUpBlockadeCounter(config, address);
         return counter[0] <= counter[1];
     }
 
@@ -119,16 +119,20 @@ public class PlayerInfo {
         blockadeCounter.clear();
     }
 
-    private Short[] setUpBlockadeCounter(Settings settings, String ipAddress) {
+    private Short[] setUpBlockadeCounter(Config config, String ipAddress) {
         short randomNumber;
         Short[] counter;
+        int same_ip_blockade_low = config.get().getInt("settings.login_attempt.ip_blockade.tries.same_ip.low");
+        int different_ip_blockade_low = config.get().getInt("settings.login_attempt.ip_blockade.tries.different_ip.low");
+
+
         if(ipAddress.equals(lastSuccessfulIp))
-            blockadeCounter.put(ipAddress, counter = new Short[]{randomNumber = settings.getRandomNumberSameIp(), //counter
-                    (short) (randomNumber - settings.same_ip_blockade_low + 1)}); //Notification should start one attempt before low limit
+            blockadeCounter.put(ipAddress, counter = new Short[]{randomNumber = config.getRandomNumberSameIp(), //counter
+                    (short) (randomNumber - same_ip_blockade_low + 1)}); //Notification should start one attempt before low limit
                     //Lower limit, when counter reaches that number, notification about blockade is sent to player
         else
-            blockadeCounter.put(ipAddress, counter = new Short[]{randomNumber = settings.getRandomNumberDifferentIp(), //counter
-                    (short) (randomNumber - settings.different_ip_blockade_low + 1)}); //Notification should start one attempt before low limit
+            blockadeCounter.put(ipAddress, counter = new Short[]{randomNumber = config.getRandomNumberDifferentIp(), //counter
+                    (short) (randomNumber - different_ip_blockade_low + 1)}); //Notification should start one attempt before low limit
                     //Lower limit, when counter reaches that number, notification about blockade is sent to player
         return counter;
     }

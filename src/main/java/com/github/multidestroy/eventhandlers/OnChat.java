@@ -1,5 +1,6 @@
 package com.github.multidestroy.eventhandlers;
 
+import com.github.multidestroy.Messages;
 import com.github.multidestroy.Utils;
 import com.github.multidestroy.commands.Login;
 import com.github.multidestroy.commands.Register;
@@ -11,13 +12,16 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class OnChat implements Listener {
 
     private PluginSystem pluginSystem;
+    private JavaPlugin plugin;
 
-    public OnChat(PluginSystem pluginSystem) {
+    public OnChat(PluginSystem pluginSystem, JavaPlugin plugin) {
         this.pluginSystem = pluginSystem;
+        this.plugin = plugin;
     }
 
     /**
@@ -37,14 +41,14 @@ public class OnChat implements Listener {
 
     private void chatRestriction(Cancellable event, Player player, String message) {
         if (!pluginSystem.isPlayerRegistered(player.getName())) {
-            if (!Utils.isCommand(message,"/register")) {
+            if (!Utils.isCommand(message,"register", plugin)) {
                 event.setCancelled(true);
-                player.sendMessage(ChatColor.RED + "You can only use /register command!");
+                player.sendMessage(Messages.getColoredString("CHAT_RESTRICTION.REGISTER"));
             }
         } else if (!pluginSystem.isPlayerLoggedIn(player.getName())) {
-            if (!Utils.isCommand(message,"/login")) {
+            if (!Utils.isCommand(message,"login", plugin)) {
                 event.setCancelled(true);
-                player.sendMessage(ChatColor.RED + "You can only use /login command!");
+                player.sendMessage(Messages.getColoredString("CHAT_RESTRICTION.LOGIN"));
             }
         }
     }

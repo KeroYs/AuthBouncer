@@ -1,13 +1,17 @@
 package com.github.multidestroy.system;
 
+import com.github.multidestroy.Messages;
 import com.github.multidestroy.eventhandlers.LoginAttempt;
 import com.github.multidestroy.eventhandlers.LoginSession;
 import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
+
+import java.awt.*;
 
 public class LoginAttemptEvent extends PlayerEvent implements Cancellable {
 
@@ -23,11 +27,8 @@ public class LoginAttemptEvent extends PlayerEvent implements Cancellable {
 
     public void disallow() {
         if(player.isOnline())
-            player.kickPlayer(ChatColor.RED + "Time to log in is over!");
-    }
-
-    public void notifyAboutLoginSessionAccessibility() {
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, LoginSession.sessionHint);
+            player.kickPlayer(Messages.getColoredString("LOGIN_ATTEMPT.DISALLOW"));
+        isCancelled = true;
     }
 
     public LoginAttemptType getType() {

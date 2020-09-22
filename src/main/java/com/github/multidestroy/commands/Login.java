@@ -1,12 +1,16 @@
 package com.github.multidestroy.commands;
 
+import com.github.multidestroy.Messages;
 import com.github.multidestroy.configs.Config;
-import com.github.multidestroy.configs.Settings;
 import com.github.multidestroy.database.Database;
+import com.github.multidestroy.eventhandlers.LoginAttempt;
+import com.github.multidestroy.eventhandlers.LoginSession;
 import com.github.multidestroy.player.PlayerActivityStatus;
 import com.github.multidestroy.player.PlayerInfo;
 import com.github.multidestroy.system.PluginSystem;
 import com.github.multidestroy.system.ThreadSystem;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -14,6 +18,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Instant;
 
@@ -21,17 +26,14 @@ public class Login implements CommandExecutor {
 
     private PluginSystem system;
     private Database database;
-    private String successfulUsage;
-    private Settings settings;
+    private Config config;
     private JavaPlugin plugin;
     private ThreadSystem threadSystem;
-    public static String correctUsage = ChatColor.RED + "/login <password>";
 
-    public Login(PluginSystem system, Database database, Config config, Settings settings, ThreadSystem threadSystem, JavaPlugin plugin) {
+    public Login(PluginSystem system, Database database, Config config, ThreadSystem threadSystem, JavaPlugin plugin) {
         this.system = system;
         this.database = database;
-        this.successfulUsage = config.getMessage("login");
-        this.settings = settings;
+        this.config = config;
         this.plugin = plugin;
         this.threadSystem = threadSystem;
     }
@@ -43,11 +45,11 @@ public class Login implements CommandExecutor {
                 if (args.length == 1) {
                     Bukkit.getScheduler().runTaskAsynchronously(plugin, asyncTask((Player) sender, args[0]));
                 } else
-                    sender.sendMessage(correctUsage);
+                    sender.sendMessage(Messages.getColoredString("COMMAND.LOGIN.CORRECT_USAGE"));
             } else
-                sender.sendMessage(ChatColor.RED + "You are already logged in!");
+                sender.sendMessage(Messages.getColoredString("COMMAND.LOGIN.ALREADY_LOGGED"));
         } else
-            sender.sendMessage(ChatColor.RED + "Command is not available to use by the console!");
+            sender.sendMessage(Messages.getColoredString("COMMAND.CONSOLE.LOCK"));
 
         return false;
     }
@@ -66,17 +68,20 @@ public class Login implements CommandExecutor {
                                 playerInfo.resetBlockadeCounter();
                                 playerActivityStatus = PlayerActivityStatus.SUCCESSFUL_LOGIN;
 
-                                player.sendMessage(successfulUsage);
+                                player.sendMessage(Messages.getColoredString("COMMAND.LOGIN.SUCCESS"));
+
+                                if(config.get().getBoolean("settings.session"))
+                                    LoginSession.notifyAboutSessionAccessibility(player, plugin);
                             }
                         } else if (!lowerBlockadeCounter(playerInfo, player))
-                            player.sendMessage(ChatColor.RED + "Wrong password!");
+                            player.sendMessage(Messages.getColoredString("COMMAND.PASSWORD.WRONG"));
                     } else if (!lowerBlockadeCounter(playerInfo, player))
-                        player.sendMessage(ChatColor.RED + "Wrong password!");
+                        player.sendMessage(Messages.getColoredString("COMMAND.PASSWORD.WRONG"));
                 } finally {
                     threadSystem.unlock(player.getName());
                 }
             } else
-                player.sendMessage(ChatColor.RED + "Wait until previous command is done!");
+                player.sendMessage(Messages.getColoredString("COMMAND.THREAD.LOCK"));
 
             database.saveLoginAttempt(player, playerActivityStatus, Instant.now());
         };
@@ -88,10 +93,15 @@ public class Login implements CommandExecutor {
 
     private boolean lowerBlockadeCounter(PlayerInfo playerInfo, Player player) {
         boolean returnValue;
-        if (returnValue = playerInfo.lowerBlockadeCounter(settings, player.getAddress().getAddress())) {
+        if (returnValue = playerInfo.lowerBlockadeCounter(config, player.getAddress().getAddress())) {
             database.lockIpAddressOnAccount(player.getAddress().getAddress(), player.getName(), Instant.now());
-            player.kickPlayer(ChatColor.DARK_RED + "Your IP address on that account has been blocked! You will not be able to log in anymore.\n" +
-                    "You can unlock your account through the website.");
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    player.kickPlayer(Messages.getColoredString("IP_BLOCKADE.BLOCKADE"));
+                }
+            }.runTask(plugin);
+
         }
         return returnValue;
     }
