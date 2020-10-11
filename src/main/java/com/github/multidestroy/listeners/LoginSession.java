@@ -1,10 +1,7 @@
-package com.github.multidestroy.eventhandlers;
+package com.github.multidestroy.listeners;
 
 import com.github.multidestroy.Messages;
-import com.github.multidestroy.configs.Config;
 import com.github.multidestroy.system.PluginSystem;
-import net.md_5.bungee.api.chat.BaseComponent;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

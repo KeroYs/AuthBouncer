@@ -1,6 +1,6 @@
-package com.github.multidestroy.eventhandlers;
+package com.github.multidestroy.listeners;
 
-import com.github.multidestroy.configs.Config;
+import com.github.multidestroy.Config;
 import com.github.multidestroy.player.PlayerInfo;
 import com.github.multidestroy.system.PluginSystem;
 import org.bukkit.Location;
@@ -11,9 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;

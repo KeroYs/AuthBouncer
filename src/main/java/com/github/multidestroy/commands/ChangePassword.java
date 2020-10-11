@@ -2,7 +2,7 @@ package com.github.multidestroy.commands;
 
 import com.github.multidestroy.Messages;
 import com.github.multidestroy.PasswordHasher;
-import com.github.multidestroy.configs.Config;
+import com.github.multidestroy.Config;
 import com.github.multidestroy.database.Database;
 import com.github.multidestroy.player.PlayerActivityStatus;
 import com.github.multidestroy.player.PlayerInfo;

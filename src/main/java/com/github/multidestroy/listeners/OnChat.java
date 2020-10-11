@@ -1,11 +1,8 @@
-package com.github.multidestroy.eventhandlers;
+package com.github.multidestroy.listeners;
 
 import com.github.multidestroy.Messages;
 import com.github.multidestroy.Utils;
-import com.github.multidestroy.commands.Login;
-import com.github.multidestroy.commands.Register;
 import com.github.multidestroy.system.PluginSystem;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;

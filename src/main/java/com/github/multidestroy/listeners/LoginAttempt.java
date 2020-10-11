@@ -1,7 +1,7 @@
-package com.github.multidestroy.eventhandlers;
+package com.github.multidestroy.listeners;
 
 import com.github.multidestroy.Messages;
-import com.github.multidestroy.configs.Config;
+import com.github.multidestroy.Config;
 import com.github.multidestroy.player.PlayerInfo;
 import com.github.multidestroy.system.LoginAttemptEvent;
 import com.github.multidestroy.system.LoginAttemptType;
@@ -10,7 +10,6 @@ import com.github.multidestroy.system.ThreadSystem;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -76,11 +75,11 @@ public class LoginAttempt implements Listener {
                 public void run() {
 
                     if (!player.isOnline()) {
-                        endLoginAttempt(event, player, playerInfo);
+                        event.setCancelled(true);
                         cancel();
                     } else if (loginAttemptType == LoginAttemptType.REGISTER && playerInfo.isRegistered() ||
                             loginAttemptType == LoginAttemptType.LOGIN && playerInfo.isLoggedIn()) {
-                        endLoginAttempt(event, player, playerInfo);
+                        event.setCancelled(true);
                         cancel();
                     } else if (iteration[0] == time) {
                         endAfterCommandExecution(player, playerInfo, event).runTaskAsynchronously(plugin);
@@ -124,7 +123,7 @@ public class LoginAttempt implements Listener {
                         if (!playerInfo.isLoggedIn())
                             event.disallow();
 
-                        endLoginAttempt(event, player, playerInfo);
+                        event.setCancelled(true);
                     });
                 } finally {
                     passwordThreadSystem.unlock(player.getName());
@@ -172,17 +171,6 @@ public class LoginAttempt implements Listener {
             player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, (time + 1) * 20, 4), true);
         if (slowness)
             player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, (time + 1) * 20, 4), true);
-    }
-
-    private void endLoginAttempt(LoginAttemptEvent event, Player player, PlayerInfo playerInfo) {
-        if(playerInfo.isLoggedIn()) {
-            player.removePotionEffect(PotionEffectType.BLINDNESS);
-            player.removePotionEffect(PotionEffectType.SLOW);
-            player.setLevel(0);
-            player.setExp(0);
-            player.sendTitle("", "", 0, 0, 0);
-        }
-        event.setCancelled(true);
     }
 
     private void playSound(Player player, Sound sound, float maxVolume, boolean increasingVolume, int pitch, int iteration, int time) {

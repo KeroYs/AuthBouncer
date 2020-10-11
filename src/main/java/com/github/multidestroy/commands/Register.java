@@ -2,9 +2,9 @@ package com.github.multidestroy.commands;
 
 import com.github.multidestroy.Messages;
 import com.github.multidestroy.PasswordHasher;
-import com.github.multidestroy.configs.Config;
+import com.github.multidestroy.Config;
 import com.github.multidestroy.database.Database;
-import com.github.multidestroy.eventhandlers.LoginSession;
+import com.github.multidestroy.listeners.LoginSession;
 import com.github.multidestroy.player.PlayerActivityStatus;
 import com.github.multidestroy.player.PlayerGlobalRank;
 import com.github.multidestroy.player.PlayerInfo;
@@ -77,6 +77,7 @@ public class Register implements CommandExecutor {
                                     Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player, LoginAttemptType.LOGIN));
                                 else {
                                     playerInfo.setLoginStatus(true);
+                                    LoginAttemptEvent.endLoginAttempt(player, playerInfo);
                                     playerInfo.setLastSuccessfulIp(player.getAddress().getAddress());
                                     if(config.get().getBoolean("settings.session"))
                                         LoginSession.notifyAboutSessionAccessibility(player, plugin);

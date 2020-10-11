@@ -1,13 +1,12 @@
 package com.github.multidestroy.commands.email.setemail;
 
 import com.github.multidestroy.Messages;
-import com.github.multidestroy.configs.Config;
+import com.github.multidestroy.Config;
 import com.github.multidestroy.database.Database;
 import com.github.multidestroy.player.PlayerActivityStatus;
 import com.github.multidestroy.system.PluginSystem;
 import com.github.multidestroy.system.ThreadSystem;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

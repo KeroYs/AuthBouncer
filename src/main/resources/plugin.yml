@@ -1,16 +1,47 @@
-name: Bouncer
+name: AuthBouncer
 main: com.github.multidestroy.Main
+description: A system that allows you to assign a password to your account (which is a verifier when logging in to the server), and allows you to assign an e-mail address to the account.
+author: MultiDestroy
 version: 1.0 BETA
+load: STARTUP
+database: true
 commands:
-  login:
-    description: Login in player to the server
-    aliases: [l]
   register:
-    description: Register player on the server
-    aliases: [r]
+    description: Allows player to register on the server by assigning password to the account.
+    permission: authbouncer.register
+    aliases: [r, rg]
+  login:
+    description: Allows player to log in to the server, onnly if player is already registered.
+    permission: authbouncer.login
+    aliases: [l, lg]
   changepassword:
-    description: Change player's password
+    description: Changes player's old password to the new one. Requires to log in to the server again.
+    permission: authbouncer.changepassword
+    aliases: [chpass, chgpass]
   setemail:
-    description: Set up email to account
+    description: Assigns an e-mail to the account.
+    permission: authbouncer.setemail
   changeemail:
-    description: Change email on the account
+    description: Change an assigned e-mail in the player's account
+    permission: authbouncer.changeemail
+    aliases: [chemail, chgemail]
+
+permissions:
+  authbouncer.*:
+    description: Gives permission to all plugin commands
+    children:
+      authbouncer.register: true
+      authbouncer.login: true
+      authbouncer.changepassword: true
+      authbouncer.setemail: true
+      authbouncer.changeemail: true
+  authbouncer.register:
+    default: true
+  authbouncer.login:
+    default: true
+  authbouncer.changepassword:
+    default: true
+  authbouncer.setemail:
+    default: true
+  authbouncer.changeemail:
+    default: true

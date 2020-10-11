@@ -1,33 +1,36 @@
-package com.github.multidestroy.eventhandlers;
+package com.github.multidestroy.listeners;
 
 import com.github.multidestroy.Messages;
-import com.github.multidestroy.configs.Config;
+import com.github.multidestroy.Config;
 import com.github.multidestroy.database.Database;
 import com.github.multidestroy.player.PlayerInfo;
-import com.github.multidestroy.system.LoginAttemptEvent;
-import com.github.multidestroy.system.LoginAttemptType;
 import com.github.multidestroy.system.PluginSystem;
-import net.md_5.bungee.api.ChatMessageType;
+import com.github.multidestroy.system.ThreadSystem;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
-import org.w3c.dom.Attr;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.net.InetSocketAddress;
+import java.time.Instant;
 
 public class OnJoin implements Listener {
 
     private PluginSystem system;
     private Database database;
     private Config config;
+    private JavaPlugin plugin;
+    private ThreadSystem passwordThreadSystem;
 
-    public OnJoin(PluginSystem system, Database database, Config config) {
+    public OnJoin(PluginSystem system, Database database, Config config, JavaPlugin plugin, ThreadSystem passwordThreadSystem) {
         this.system = system;
         this.database = database;
         this.config = config;
+        this.plugin = plugin;
+        this.passwordThreadSystem = passwordThreadSystem;
     }
 
     /**
@@ -38,13 +41,27 @@ public class OnJoin implements Listener {
     public void OnPlayerPreLogin(AsyncPlayerPreLoginEvent event) {
         String playerName = event.getName();
         if(database.isConnected()) {
-            if (!system.isPlayerInSystem(playerName)) { //Check if player was ever saved into the system
-                PlayerInfo playerFromDatabase;
-                if ((playerFromDatabase = database.getRegisteredPlayer(playerName)) != null)
-                    system.saveNewPlayer(playerName, playerFromDatabase); //player is already registered
-                else
+
+            System.out.println(event.getAddress().getHostAddress());
+            switch (database.checkIpBlockade(event.getName(), event.getAddress())) {
+                case -1:
                     event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, Messages.getColoredString("ERROR"));
+                    break;
+                case 0:
+                    if (!system.isPlayerInSystem(playerName)) { //Check if player was ever saved into the system
+                        PlayerInfo playerFromDatabase;
+                        if ((playerFromDatabase = database.getRegisteredPlayer(playerName)) != null)
+                            system.saveNewPlayer(playerName, playerFromDatabase); //player is already registered
+                        else
+                            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, Messages.getColoredString("ERROR"));
+                    }
+                    break;
+                case 1:
+                    event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, Messages.getColoredString("IP_BLOCKADE.JOIN"));
+                    break;
             }
+
+
         } else
             event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, Messages.getColoredString("ERROR"));
     }
@@ -56,24 +73,17 @@ public class OnJoin implements Listener {
      */
 
     @EventHandler
-    public void OnPlayerJoin(PlayerJoinEvent event) {
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        System.out.println("Time of join: " + Instant.now().toEpochMilli());
         Player player = event.getPlayer();
         PlayerInfo playerInfo = system.getPlayerInfo(player.getName());
+        playerInfo.setLoginStatus(false);
         boolean isLoginSessionAvailable = config.get().getBoolean("settings.session");
         //set player's GameMode to survival
         if (player.getGameMode() != GameMode.SURVIVAL)
             player.setGameMode(GameMode.SURVIVAL);
         player.setHealth(20);
         player.setFoodLevel(20);
-        //Check if login session is enabled in the settings
-        if (isLoginSessionAvailable && system.isLoginSession(player.getName(), event.getPlayer().getAddress().getAddress())) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(Messages.getColoredString("SESSION.ENABLE")));
-            system.getPlayerInfo(player.getName()).setLoginStatus(true);
-        } else { //Player must log in to the server
-            LoginAttemptType loginAttemptType = playerInfo.isRegistered() ? LoginAttemptType.LOGIN : LoginAttemptType.REGISTER;
-            Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player, loginAttemptType));
-        }
-
     }
 
     /**
@@ -85,4 +95,5 @@ public class OnJoin implements Listener {
         if (!system.isPlayerInSystem(event.getPlayer().getName()))
             event.disallow(PlayerLoginEvent.Result.KICK_OTHER, Messages.getColoredString("EVENT.PRELOGIN.MISSED"));
     }
+
 }

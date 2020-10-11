@@ -28,6 +28,8 @@ shadowJar {
 }
 
 dependencies {
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.3'
     compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
     shadow group: 'de.mkammerer', name: 'argon2-jvm', version: '2.6'
     implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.14'

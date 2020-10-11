@@ -1,18 +1,16 @@
 package com.github.multidestroy.commands;
 
+import com.github.multidestroy.ChannelMessage;
 import com.github.multidestroy.Messages;
-import com.github.multidestroy.configs.Config;
+import com.github.multidestroy.Config;
 import com.github.multidestroy.database.Database;
-import com.github.multidestroy.eventhandlers.LoginAttempt;
-import com.github.multidestroy.eventhandlers.LoginSession;
+import com.github.multidestroy.listeners.LoginSession;
 import com.github.multidestroy.player.PlayerActivityStatus;
 import com.github.multidestroy.player.PlayerInfo;
+import com.github.multidestroy.system.LoginAttemptEvent;
 import com.github.multidestroy.system.PluginSystem;
 import com.github.multidestroy.system.ThreadSystem;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -29,13 +27,15 @@ public class Login implements CommandExecutor {
     private Config config;
     private JavaPlugin plugin;
     private ThreadSystem threadSystem;
+    private ChannelMessage channelMessage;
 
-    public Login(PluginSystem system, Database database, Config config, ThreadSystem threadSystem, JavaPlugin plugin) {
+    public Login(PluginSystem system, Database database, Config config, ThreadSystem threadSystem, JavaPlugin plugin, ChannelMessage channelMessage) {
         this.system = system;
         this.database = database;
         this.config = config;
         this.plugin = plugin;
         this.threadSystem = threadSystem;
+        this.channelMessage = channelMessage;
     }
 
     @Override
@@ -66,10 +66,13 @@ public class Login implements CommandExecutor {
                                 playerInfo.setLoginStatus(true);
                                 playerInfo.setLastSuccessfulIp(player.getAddress().getAddress());
                                 playerInfo.resetBlockadeCounter();
+                                LoginAttemptEvent.endLoginAttempt(player, playerInfo);
+                                System.out.println(player.getAddress().getHostName());
+                                System.out.println(player.getAddress().getHostString());
                                 playerActivityStatus = PlayerActivityStatus.SUCCESSFUL_LOGIN;
 
                                 player.sendMessage(Messages.getColoredString("COMMAND.LOGIN.SUCCESS"));
-
+                                channelMessage.sendLoginStatusChangeMessage(player, true);
                                 if(config.get().getBoolean("settings.session"))
                                     LoginSession.notifyAboutSessionAccessibility(player, plugin);
                             }

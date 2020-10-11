@@ -1,6 +1,6 @@
 package com.github.multidestroy.player;
 
-import com.github.multidestroy.configs.Config;
+import com.github.multidestroy.Config;
 
 import java.net.InetAddress;
 import java.util.HashMap;

@@ -1,12 +1,11 @@
 package com.github.multidestroy.database;
 
-import com.github.multidestroy.configs.Config;
+import com.github.multidestroy.Config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Map;
 
 class DataSource {
 

@@ -39,6 +39,16 @@ public class Utils {
         return true;
     }
 
+    public static boolean containsCommand(String message, String command, JavaPlugin plugin) {
+        List<String> aliases = plugin.getCommand(command).getAliases();
+        if(!message.contains(command)) {
+            for (String alias : aliases)
+                if (message.contains(alias))
+                    return true;
+            return false;
+        }
+        return true;
+    }
 
     private static boolean startsWithCommand(String message, String command) {
         int offSet = 0;
@@ -50,4 +60,5 @@ public class Utils {
         return false;
 
     }
+
 }

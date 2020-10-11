@@ -1,6 +1,5 @@
 package com.github.multidestroy;
 
-import com.github.multidestroy.configs.Config;
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 

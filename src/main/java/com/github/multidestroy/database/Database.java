@@ -1,17 +1,14 @@
 package com.github.multidestroy.database;
 
-import com.github.multidestroy.configs.Config;
+import com.github.multidestroy.Config;
 import com.github.multidestroy.player.PlayerGlobalRank;
 import com.github.multidestroy.player.PlayerInfo;
 import com.github.multidestroy.player.PlayerActivityStatus;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.net.InetAddress;
 import java.time.Instant;
-import java.util.Map;
 import java.sql.*;
-import java.util.logging.Logger;
 
 public class Database {
 
@@ -229,6 +226,42 @@ public class Database {
         }
         return returnValue;
     }
+
+    /**
+     * @return 1 - if player's ip is blockaded on account, 0 - if player's ip is not locked or -1 if caught exception
+     */
+
+    public int checkIpBlockade(String playerName, InetAddress address) {
+        String query = "SELECT * FROM ip_blockades" +
+                " WHERE player=(SELECT id FROM players WHERE LOWER(nick)=?)" +
+                " AND ip_address=?";
+        Connection conn = null;
+        int returnValue;
+        try {
+
+            conn = dataSource.getConnection();
+            PreparedStatement ps = conn.prepareStatement( query );
+            ps.setString(1, playerName.toLowerCase());
+            ps.setString(2, address.getHostAddress());
+
+            if(ps.executeQuery().next()) {
+                returnValue = 1;
+                System.out.println("hejo");
+            }
+            else {
+                returnValue = 0;
+                System.out.println("wujo");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            returnValue = -1;
+        } finally {
+            closeConn(conn);
+        }
+
+        return returnValue;
+    }
+
 
     private PlayerInfo shellPlayerInfo(ResultSet rs, String playerName) {
         PlayerInfo playerInfo = new PlayerInfo();

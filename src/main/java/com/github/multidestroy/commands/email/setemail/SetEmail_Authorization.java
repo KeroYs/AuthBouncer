@@ -1,7 +1,7 @@
 package com.github.multidestroy.commands.email.setemail;
 
 import com.github.multidestroy.commands.email.Authorization;
-import com.github.multidestroy.configs.Config;
+import com.github.multidestroy.Config;
 import com.github.multidestroy.EmailSender;
 import com.github.multidestroy.database.Database;
 import com.github.multidestroy.system.PluginSystem;

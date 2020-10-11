@@ -1,4 +1,4 @@
-package com.github.multidestroy.configs;
+package com.github.multidestroy;
 
 import com.github.multidestroy.Utils;
 import org.bukkit.configuration.Configuration;
