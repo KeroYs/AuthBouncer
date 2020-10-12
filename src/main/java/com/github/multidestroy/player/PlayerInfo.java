@@ -83,6 +83,7 @@ public class PlayerInfo {
         return loginStatus;
     }
 
+    @Deprecated
     public boolean isLoginSession() {
         return loginSession;
     }
@@ -122,18 +123,18 @@ public class PlayerInfo {
     private Short[] setUpBlockadeCounter(Config config, String ipAddress) {
         short randomNumber;
         Short[] counter;
-        int same_ip_blockade_low = config.get().getInt("settings.login_attempt.ip_blockade.tries.same_ip.low");
-        int different_ip_blockade_low = config.get().getInt("settings.login_attempt.ip_blockade.tries.different_ip.low");
+        int same_ip_blockade_low = config.get().getInt("settings.login_attempt.ip_blockade.attempts.same_ip.low");
+        int different_ip_blockade_low = config.get().getInt("settings.login_attempt.ip_blockade.attempts.different_ip.low");
 
 
         if(ipAddress.equals(lastSuccessfulIp))
             blockadeCounter.put(ipAddress, counter = new Short[]{randomNumber = config.getRandomNumberSameIp(), //counter
                     (short) (randomNumber - same_ip_blockade_low + 1)}); //Notification should start one attempt before low limit
-                    //Lower limit, when counter reaches that number, notification about blockade is sent to player
+                    //Lower limit, when counter reaches that number, notification about allow is sent to player
         else
             blockadeCounter.put(ipAddress, counter = new Short[]{randomNumber = config.getRandomNumberDifferentIp(), //counter
                     (short) (randomNumber - different_ip_blockade_low + 1)}); //Notification should start one attempt before low limit
-                    //Lower limit, when counter reaches that number, notification about blockade is sent to player
+                    //Lower limit, when counter reaches that number, notification about allow is sent to player
         return counter;
     }
 

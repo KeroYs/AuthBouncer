@@ -21,9 +21,7 @@ public class PasswordHasher {
         Instant start = Instant.now();
         int iterations = config.get().getInt("argon2id.iterations");
         int memory = config.get().getInt("argon2id.memory");
-        System.out.println("MEMORY: " + memory);
         String hash = argon2.hash(iterations, memory, 2 * cores, password.toCharArray());
-        System.out.println(((float) (Instant.now().toEpochMilli() - start.toEpochMilli()))/1000 + " s");
         return hash;
     }
 

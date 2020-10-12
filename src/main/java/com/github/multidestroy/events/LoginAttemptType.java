@@ -1,4 +1,4 @@
-package com.github.multidestroy.system;
+package com.github.multidestroy.events;
 
 public enum LoginAttemptType {
     LOGIN,

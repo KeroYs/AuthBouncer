@@ -1,6 +1,8 @@
-package com.github.multidestroy.listeners;
+package com.github.multidestroy.events.listeners;
 
+import com.github.multidestroy.Config;
 import com.github.multidestroy.Messages;
+import com.github.multidestroy.player.PlayerInfo;
 import com.github.multidestroy.system.PluginSystem;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,13 +29,16 @@ public class LoginSession implements Listener {
         }
     }
 
-    public static void notifyAboutSessionAccessibility(Player player, JavaPlugin plugin) {
+    public static void notifyAboutSessionAccessibility(Player player, PlayerInfo playerInfo, JavaPlugin plugin, Config config) {
         final int[] i = {0};
+        final int limit = config.get().getInt("settings.login_session.hint_time");
         new BukkitRunnable() {
 
             @Override
             public void run() {
-                if(i[0] != 3) {
+                if(!player.isOnline() || playerInfo.isLoginSession())
+                    cancel();
+                else if(i[0] != limit) {
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                             TextComponent.fromLegacyText(Messages.getColoredString("SESSION.HINT")));
                     i[0]++;

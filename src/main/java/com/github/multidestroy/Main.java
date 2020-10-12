@@ -5,13 +5,14 @@ import com.github.multidestroy.commands.ChangePassword;
 import com.github.multidestroy.commands.email.changeemail.ChangeEmail;
 import com.github.multidestroy.commands.email.setemail.SetEmail;
 import com.github.multidestroy.database.Database;
-import com.github.multidestroy.listeners.*;
+import com.github.multidestroy.events.listeners.*;
 import com.github.multidestroy.player.PlayerInfo;
-import com.github.multidestroy.system.LoginAttemptEvent;
-import com.github.multidestroy.system.LoginAttemptType;
+import com.github.multidestroy.events.LoginAttemptEvent;
+import com.github.multidestroy.events.LoginAttemptType;
 import com.github.multidestroy.system.PluginSystem;
 import com.github.multidestroy.system.ThreadSystem;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.time.Instant;
@@ -25,6 +26,7 @@ public class Main extends JavaPlugin {
     private ThreadSystem passwordThreadSystem;
     private ThreadSystem emailThreadSystem;
     private ChannelMessage channelMessage;
+    private CommandsFilter commandsFilter;
 
     @Override
     public void onEnable() {
@@ -32,7 +34,7 @@ public class Main extends JavaPlugin {
         database = null;
 
         /*              Config              */
-        config = new Config();
+        config = new Config("config.yml");
         config.setup(this);
 
         //Select resource bundle
@@ -52,14 +54,16 @@ public class Main extends JavaPlugin {
                 if(database.reloadDataSource()) {
                     database.saveDefaultTables();
 
-                    //Register logger filter
-                    CommandsFilter commandsFilter = new CommandsFilter(this);
-
-                    //Register plugin message channel
-                    getServer().getMessenger().registerIncomingPluginChannel(this, "bouncer:channel", channelMessage);
-                    getServer().getMessenger().registerOutgoingPluginChannel(this, "bouncer:channel");
+                    //Register plugin message channel, commands and events
+                    if (config.get().getBoolean("settings.bungeecord")) {
+                        getServer().getMessenger().registerIncomingPluginChannel(this, "bouncer:channel", channelMessage);
+                        getServer().getMessenger().registerOutgoingPluginChannel(this, "bouncer:channel");
+                    }
                     registerCommands();
                     registerEvents();
+
+                    //Register logger filter
+                    commandsFilter = new CommandsFilter(this);
 
                     //Force new players to log in
                     forcePlayersToLogIn();
@@ -88,6 +92,8 @@ public class Main extends JavaPlugin {
     public void onDisable() {
         if (database != null)
             database.close();
+
+        commandsFilter.stopFilter();
     }
 
     private void registerCommands () {
@@ -119,8 +125,10 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new OnChat(system, this), this);
         getServer().getPluginManager().registerEvents(new LoginAttempt(system,this, passwordThreadSystem, config), this);
         getServer().getPluginManager().registerEvents(new PlayerInteraction(system, config), this);
-        if(config.get().getBoolean("settings.session"))
+        if(config.get().getBoolean("settings.login_session.allow"))
             getServer().getPluginManager().registerEvents(new LoginSession(system), this);
+        if(!config.get().getBoolean("settings.bungeecord"))
+            getServer().getPluginManager().registerEvents(new OnLeave(system), this);
     }
 
     private void forcePlayersToLogIn() {

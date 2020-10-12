@@ -1,4 +1,9 @@
-#Set up information about your PostgreSQL database.
+#---------------------------------------------[              Database              ]--------------------------------------------#
+# The plugin requires information about the PostgreSQL database it will work on.
+# Plugin does not support local database.
+# PostgreSQL documentation: https://jdbc.postgresql.org/documentation/documentation.html.
+#-------------------------------------------------------------------------------------------------------------------------------#
+
 database:
   host: "host"
   port: "port"
@@ -6,52 +11,171 @@ database:
   username: "username"
   password: "password"
 
-#---------------------------------------------[              Messages              ]---------------------------------------------#
-#If you want to select language, uncomment section "language" and enter a proper locale.
-#If you want to add your own translation, open Bouncer.jar and modify one of messages.properties file or add your own translation
-#named messages_lang.properties where "lang" is language name defined by ISO 639 standard.
-#Built-in languages:
-#en
-#pl
+#---------------------------------------[              Messages / Language              ]---------------------------------------#
+# Plugin provides built-in languages and allows to customize them to your requirements.
+# Default language is english, but it can be changed in the section "language" down below.
+# Language codes are defined by "ISO 639 alpha-2 or alpha-3 language code".
+# ISO 639: https://www.loc.gov/standards/iso639-2/php/code_list.php
+#
+# 1. To change language to the one of the built-in:
+#    - Find section "language"
+#    - Change language code in this section to the one of built-in.
+#    - Change of the language may not work without restarting the server.
+#
+# 2. To add custom language:
+#    - Go to your plugin file "AuthBouncer.jar" and open it as an archive.
+#    - You will find there "messages_lang" files. Copy one of them and translate values to your language.
+#    - Change name of the copied file to "messages_lang" where lang is language code, for example "messages.es".
+#    - Put your file in plugin jar file and change "language" section in this config to the language code you defined your file.
+#    - Change of the language may not work without restarting the server.
+#
+# Built-in languages:
+#   - en
+#   - pl
 #-------------------------------------------------------------------------------------------------------------------------------#
 
-#language: en
+language: en
+
+#--------------------------------------------[              Encryption              ]-------------------------------------------#
+# The plugin uses Encryption algorithm named "Argon2" to secure players' password.
+# "Argon2" on github: https://github.com/phxql/argon2-jvm.
+#-------------------------------------------------------------------------------------------------------------------------------#
 
 argon2id:
   iterations: 4
   memory: 524_288
 
-#Set up how plugin should work
+#---------------------------------------------[              Settings              ]--------------------------------------------#
+# This section defines how plugin should work (mostly during Login Attempt part).
+# If default settings does not meet your requirements, you can try to change to your custom ones down below.
+# Every single section has it's own overall description and every setting has detailed description.
+# [ Overall description ]
+# / Detailed description \
+#-------------------------------------------------------------------------------------------------------------------------------#
+
 settings:
-  e-mail:
-    authorization: true
-    hint: true
-  login_attempt:
-    time: 60
-    login_after_registration: true
-    allow_book_reading: true
-    blindness: true
-    slowness: true
-    moving_blockade: true
-    sound:
-      name: UI_BUTTON_CLICK
-      increasing_volume: true
-      max_volume: 100 #0-100
-      pitch: 0
-    title_text:
-      display_time:
-        fade_in: 30
-        stay: 40
-        fade_out: 30
-        period: 120
-    ip_blockade:
-      blockade: true
-      tries:
-        same_ip:
-          low: 25
-          top: 30
-        different_ip:
-          low: 10
-          top: 15
-  session: true
+  # [ The login session does not require the player to enter a password ]
+  login_session:
+      # / Allow player (by pressing Left Shift) to bypass Login Attempt if is joining from the same IP address as before \
+    allow: true
+      # / The length of time the message that the login session can be started will be displayed on the action bar [in seconds] \
+    hint_time: 3
+
+    # / Define the minimum length for password \
   password_min_length: 5
+    # / Determines if plugin should cooperate with BungeeCord It requires to put the same plugin file "AuthBouncer.jar" to "plugins" folder where BungeeCord server has it's instance \
+  bungeecord: false
+
+  # [ Prepare player to Login Attempt. If player has enabled login session, those settings are not performed ]
+  join:
+      # / Set player's hunger to the max value \
+    max_hunger: true
+      # / Set player's hp to the max value \
+    max_health: true
+
+    # [ Player's GameMode can be changed to the default value ]
+    gamemode:
+        # / GameMode will be changed to the default value when player joins the server \
+      enforce: true
+        # / Default value to which player's GameMode will be changed into. GameMode values: https://helpch.at/docs/1.12.2/org/bukkit/GameMode.html \
+      default: SURVIVAL
+
+  # [ Options to show plugin how to work with e-mails ]
+  e-mail:
+      # / Require to authorize e-mail by message sent to the entered e-mail \
+    authorization: false
+      # / Gives a hint on the name of the assigned e-mail address \
+    hint: true
+
+  # [ Login Attempt is the state when players has not been authorized and plugin waits for player to register or log in to the server ]
+  login_attempt:
+      # / Time how long will Login Attempt last [in seconds] \
+    time: 60
+      # / Force player to log in to the server after successful registration \
+    login_after_registration: true
+      # / Give the player blindness effect \
+    blindness: true
+      # / Give the player slowness effect \
+    slowness: true
+
+    # [ Player's interaction with environment ]
+    interaction:
+        # / Allow player to hit other entity (mob, player) \
+      entity_hit: false
+      # [ Player's interaction with items ]
+      items:
+          # / Allow player to pick up items \
+        picking: false
+          # / Allow player to drop items \
+        dropping: false
+          # / Allow player to interact with items by clicking on them \
+        click: false
+          # / Allow player to read "Written Books"
+        allow_book_reading: true
+
+      # [ Player's interaction with vehicles ]
+      vehicles:
+          # / Allow player to hit/destroy vehicle \
+        hit: false
+          # / Allow player to get into the vehicle \
+        enter: false
+
+      # [ Player's interaction with inventories ]
+      inventory:
+          # / Allow player to move items inside the equipment \
+        moving_items: false
+          # / Allow player to open foreign inventories such like chests or furnaces \
+        open_foreign: false
+
+        # / Allow player to move \
+      moving_blockade: true
+        # / Allow player to use any kind of teleportation. WARNING! Setting this up to true will allow player to use end/nether portal \
+      teleportation: false
+
+    # [ Played sound reminding the player of the passing time ]
+    sound:
+        # / Name of the sound. All names: https://helpch.at/docs/1.12.2/org/bukkit/Sound.html \
+      name: UI_BUTTON_CLICK
+        # / Sound will be heard louder along with the passing time \
+      increasing_volume: true
+        # / Maximum volume value of the sound. If "increasing_volume" is false, sound will be played with this volume. Compartment: [0, 100] \
+      max_volume: 100
+        # / Height from which player will hear the sound \
+      pitch: 0
+
+    # [ Text displayed to the player in the form of a title ]
+    title_text:
+        # / Show player text \
+      display: true
+      # [ Time settings of title text [in ticks] ]
+      display_time:
+          # / Time in which text come from 0% visibility to 100% visibility \
+        fade_in: 30
+          # / Time in which text stays in 100% visibility \
+        stay: 40
+          # / Time in which text go down from 100% visibility to 0% visibility \
+        fade_out: 30
+          # / Period between messages. [Period >= fade_in + stay + fade_out] \
+        period: 120
+
+    # [ IP address might be locked on the account if somebody is trying too many times to log in to that account. ]
+    ip_blockade:
+        # / Allow plugin to allow an account \
+      allow: true
+
+      # [ Specify how many times a player can try to log into the server before his/her IP address is blocked. Every IP address has its own counter ]
+      # [ When a player reaches the lower limit, his/her IP address may be blocked in a few next attempts, in the most cases before it reaches upper limit ]
+      attempts:
+        # [ Number of attempts for a player whose IP address is equal to the IP address from the last valid login ]
+        same_ip:
+            # / Lower limit. After crossing this number, player's account might be blocked in next attempt \
+          low: 25
+            # / Upper limit. After crossing lower limit and before crossing this limit, player's account will be blocked \
+          top: 30
+
+        # [ Number of attempts for a player whose IP address is not equal to the IP address from the last valid login ]
+        different_ip:
+            # / Lower limit. After crossing this number, player's account might be blocked in next attempt \
+          low: 10
+            # / Upper limit. After crossing lower limit and before crossing this limit, player's account will be blocked \
+          top: 15

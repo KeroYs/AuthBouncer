@@ -6,7 +6,7 @@ import com.github.multidestroy.Config;
 import com.github.multidestroy.database.Database;
 import com.github.multidestroy.player.PlayerActivityStatus;
 import com.github.multidestroy.player.PlayerInfo;
-import com.github.multidestroy.system.LoginAttemptEvent;
+import com.github.multidestroy.events.LoginAttemptEvent;
 import com.github.multidestroy.system.PluginSystem;
 import com.github.multidestroy.system.ThreadSystem;
 import org.bukkit.Bukkit;

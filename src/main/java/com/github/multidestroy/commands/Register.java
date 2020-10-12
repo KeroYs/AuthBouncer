@@ -4,12 +4,12 @@ import com.github.multidestroy.Messages;
 import com.github.multidestroy.PasswordHasher;
 import com.github.multidestroy.Config;
 import com.github.multidestroy.database.Database;
-import com.github.multidestroy.listeners.LoginSession;
+import com.github.multidestroy.events.listeners.LoginSession;
 import com.github.multidestroy.player.PlayerActivityStatus;
 import com.github.multidestroy.player.PlayerGlobalRank;
 import com.github.multidestroy.player.PlayerInfo;
-import com.github.multidestroy.system.LoginAttemptEvent;
-import com.github.multidestroy.system.LoginAttemptType;
+import com.github.multidestroy.events.LoginAttemptEvent;
+import com.github.multidestroy.events.LoginAttemptType;
 import com.github.multidestroy.system.PluginSystem;
 
 import com.github.multidestroy.system.ThreadSystem;
@@ -79,8 +79,8 @@ public class Register implements CommandExecutor {
                                     playerInfo.setLoginStatus(true);
                                     LoginAttemptEvent.endLoginAttempt(player, playerInfo);
                                     playerInfo.setLastSuccessfulIp(player.getAddress().getAddress());
-                                    if(config.get().getBoolean("settings.session"))
-                                        LoginSession.notifyAboutSessionAccessibility(player, plugin);
+                                    if(config.get().getBoolean("settings.login_session.allow"))
+                                        LoginSession.notifyAboutSessionAccessibility(player, playerInfo, plugin, config);
                                 }
                             } else
                                 player.sendMessage(Messages.getColoredString("ERROR"));

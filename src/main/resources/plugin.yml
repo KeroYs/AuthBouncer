@@ -1,9 +1,8 @@
-name: AuthBouncer
+name: Bouncer
 main: com.github.multidestroy.Main
 description: A system that allows you to assign a password to your account (which is a verifier when logging in to the server), and allows you to assign an e-mail address to the account.
 author: MultiDestroy
 version: 1.0 BETA
-load: STARTUP
 database: true
 commands:
   register:

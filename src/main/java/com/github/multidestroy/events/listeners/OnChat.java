@@ -1,4 +1,4 @@
-package com.github.multidestroy.listeners;
+package com.github.multidestroy.events.listeners;
 
 import com.github.multidestroy.Messages;
 import com.github.multidestroy.Utils;

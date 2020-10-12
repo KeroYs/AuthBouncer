@@ -4,10 +4,10 @@ import com.github.multidestroy.ChannelMessage;
 import com.github.multidestroy.Messages;
 import com.github.multidestroy.Config;
 import com.github.multidestroy.database.Database;
-import com.github.multidestroy.listeners.LoginSession;
+import com.github.multidestroy.events.listeners.LoginSession;
 import com.github.multidestroy.player.PlayerActivityStatus;
 import com.github.multidestroy.player.PlayerInfo;
-import com.github.multidestroy.system.LoginAttemptEvent;
+import com.github.multidestroy.events.LoginAttemptEvent;
 import com.github.multidestroy.system.PluginSystem;
 import com.github.multidestroy.system.ThreadSystem;
 import org.bukkit.Bukkit;
@@ -67,14 +67,12 @@ public class Login implements CommandExecutor {
                                 playerInfo.setLastSuccessfulIp(player.getAddress().getAddress());
                                 playerInfo.resetBlockadeCounter();
                                 LoginAttemptEvent.endLoginAttempt(player, playerInfo);
-                                System.out.println(player.getAddress().getHostName());
-                                System.out.println(player.getAddress().getHostString());
                                 playerActivityStatus = PlayerActivityStatus.SUCCESSFUL_LOGIN;
 
                                 player.sendMessage(Messages.getColoredString("COMMAND.LOGIN.SUCCESS"));
                                 channelMessage.sendLoginStatusChangeMessage(player, true);
-                                if(config.get().getBoolean("settings.session"))
-                                    LoginSession.notifyAboutSessionAccessibility(player, plugin);
+                                if(config.get().getBoolean("settings.login_session.allow"))
+                                    LoginSession.notifyAboutSessionAccessibility(player, playerInfo, plugin, config);
                             }
                         } else if (!lowerBlockadeCounter(playerInfo, player))
                             player.sendMessage(Messages.getColoredString("COMMAND.PASSWORD.WRONG"));

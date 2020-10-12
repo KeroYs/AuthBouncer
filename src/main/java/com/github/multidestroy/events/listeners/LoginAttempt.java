@@ -1,10 +1,10 @@
-package com.github.multidestroy.listeners;
+package com.github.multidestroy.events.listeners;
 
 import com.github.multidestroy.Messages;
 import com.github.multidestroy.Config;
 import com.github.multidestroy.player.PlayerInfo;
-import com.github.multidestroy.system.LoginAttemptEvent;
-import com.github.multidestroy.system.LoginAttemptType;
+import com.github.multidestroy.events.LoginAttemptEvent;
+import com.github.multidestroy.events.LoginAttemptType;
 import com.github.multidestroy.system.PluginSystem;
 import com.github.multidestroy.system.ThreadSystem;
 import net.md_5.bungee.api.ChatMessageType;
@@ -116,7 +116,7 @@ public class LoginAttempt implements Listener {
         return new BukkitRunnable() {
             @Override
             public void run() {
-                boolean isLoginSessionAvailable = config.get().getBoolean("settings.login_session");
+                boolean isLoginSessionAvailable = config.get().getBoolean("settings.login_session.allow");
                 passwordThreadSystem.lock(player.getName());
                 try {
                     Bukkit.getScheduler().runTask(plugin, () -> {
@@ -151,7 +151,7 @@ public class LoginAttempt implements Listener {
 
             @Override
             public void run() {
-                if(title.length() == 0 && subtitle.length() == 0)
+                if((title.length() == 0 && subtitle.length() == 0) || !config.get().getBoolean("settings.login_attempt.title_text.display"))
                     cancel();
 
                 if(!event.isCancelled() && !playerInfo.isLoggedIn())

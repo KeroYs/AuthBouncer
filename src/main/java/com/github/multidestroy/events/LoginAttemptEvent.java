@@ -1,4 +1,4 @@
-package com.github.multidestroy.system;
+package com.github.multidestroy.events;
 
 import com.github.multidestroy.Messages;
 import com.github.multidestroy.player.PlayerInfo;

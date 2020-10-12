@@ -1,21 +1,22 @@
-package com.github.multidestroy.listeners;
+package com.github.multidestroy.events.listeners;
 
 import com.github.multidestroy.Messages;
 import com.github.multidestroy.Config;
 import com.github.multidestroy.database.Database;
+import com.github.multidestroy.events.LoginAttemptEvent;
+import com.github.multidestroy.events.LoginAttemptType;
 import com.github.multidestroy.player.PlayerInfo;
 import com.github.multidestroy.system.PluginSystem;
 import com.github.multidestroy.system.ThreadSystem;
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.net.InetSocketAddress;
-import java.time.Instant;
 
 public class OnJoin implements Listener {
 
@@ -42,7 +43,6 @@ public class OnJoin implements Listener {
         String playerName = event.getName();
         if(database.isConnected()) {
 
-            System.out.println(event.getAddress().getHostAddress());
             switch (database.checkIpBlockade(event.getName(), event.getAddress())) {
                 case -1:
                     event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, Messages.getColoredString("ERROR"));
@@ -76,11 +76,17 @@ public class OnJoin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         PlayerInfo playerInfo = system.getPlayerInfo(player.getName());
-        playerInfo.setLoginStatus(false);
+        boolean isLoginSessionAvailable = config.get().getBoolean("settings.login_session.allow");
+        boolean bungeeCord = config.get().getBoolean("settings.bungeecord");
 
-        boolean isLoginSessionAvailable = config.get().getBoolean("settings.login_session");
-        // Set player's food, health and GameMode according to plugin settings
-        if(!isLoginSessionAvailable || !playerInfo.isLoginSession()) {
+
+
+        if(!isLoginSessionAvailable || !system.isLoginSession(player.getName(), player.getAddress().getAddress())) {
+            if (config.get().getBoolean("settings.bungeecord"))
+                playerInfo.setLoginStatus(false);
+
+
+            // Set player's food, health and GameMode according to plugin settings
             if(config.get().getBoolean("settings.join.max_hunger"))
                 player.setFoodLevel(20);
             if(config.get().getBoolean("settings.join.max_health"))
@@ -89,6 +95,12 @@ public class OnJoin implements Listener {
                 player.setGameMode(GameMode.valueOf(config.get().getString("settings.join.gamemode.default")));
         }
 
+        if (isLoginSessionAvailable && system.isLoginSession(player.getName(), player.getAddress().getAddress())) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(Messages.getColoredString("SESSION.ENABLE")));
+        } else {
+            LoginAttemptType loginAttemptType = playerInfo.isRegistered() ? LoginAttemptType.LOGIN : LoginAttemptType.REGISTER;
+            Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player, loginAttemptType));
+        }
     }
 
     /**

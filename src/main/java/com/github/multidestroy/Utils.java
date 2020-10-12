@@ -39,7 +39,7 @@ public class Utils {
         return true;
     }
 
-    public static boolean containsCommand(String message, String command, JavaPlugin plugin) {
+    static boolean containsCommand(String message, String command, JavaPlugin plugin) {
         List<String> aliases = plugin.getCommand(command).getAliases();
         if(!message.contains(command)) {
             for (String alias : aliases)

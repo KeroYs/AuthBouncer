@@ -1,4 +1,4 @@
-package com.github.multidestroy.listeners;
+package com.github.multidestroy.events.listeners;
 
 import com.github.multidestroy.Config;
 import com.github.multidestroy.player.PlayerInfo;
@@ -9,13 +9,15 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.*;
+import org.bukkit.event.vehicle.VehicleDamageEvent;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
+import org.bukkit.event.vehicle.VehicleEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -58,15 +60,15 @@ public class PlayerInteraction implements Listener {
     public void onItemClick(PlayerInteractEvent event) {
             Action action = event.getAction();
             PlayerInfo playerInfo = system.getPlayerInfo(event.getPlayer().getName());
-            boolean allowBookReading = config.get().getBoolean("settings.login_attempt.allow_book_reading");
+            boolean allowBookReading = config.get().getBoolean("settings.login_attempt.interaction.items.allow_book_reading");
             boolean allowItemClick = config.get().getBoolean("settings.login_attempt.interaction.items.click");
             if (!playerInfo.isLoggedIn()) {
                 if (allowBookReading)
                     if (action.equals(Action.RIGHT_CLICK_AIR) || action.equals(Action.RIGHT_CLICK_BLOCK))
-                        if (event.getItem().getType().equals(Material.WRITTEN_BOOK))
+                        if (event.getItem() != null && event.getItem().getType().equals(Material.WRITTEN_BOOK))
                             return;
 
-                event.setCancelled(allowItemClick);
+                event.setCancelled(!allowItemClick);
             }
     }
 
@@ -121,6 +123,30 @@ public class PlayerInteraction implements Listener {
                 event.setCancelled(true);
     }
 
+    @EventHandler
+    public void onEntityHit(EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player) {
+            if (!system.isPlayerLoggedIn(event.getDamager().getName()))
+                event.setCancelled(!config.get().getBoolean("settings.login_attempt.interaction.entity_hit"));
+        }
+    }
+
+    @EventHandler
+    public void onVehicleHit(VehicleDamageEvent event) {
+        if (event.getAttacker() instanceof Player) {
+            if (!system.isPlayerLoggedIn(event.getAttacker().getName()))
+                event.setCancelled(!config.get().getBoolean("settings.login_attempt.interaction.vehicles.hit"));
+        }
+    }
+
+    @EventHandler
+    public void playerGetIntoVehicle(VehicleEnterEvent event) {
+        if (event.getEntered() instanceof Player) {
+            if (!system.isPlayerLoggedIn(event.getEntered().getName()))
+                event.setCancelled(!config.get().getBoolean("settings.login_attempt.interaction.vehicles.enter"));
+        }
+    }
+
     private boolean isDifferentLocation(Location from, Location to) {
         if(from.getX() == to.getX())
             if(from.getY() == to.getY())
@@ -128,5 +154,5 @@ public class PlayerInteraction implements Listener {
         return true;
 
     }
-    
+
 }

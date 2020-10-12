@@ -231,7 +231,7 @@ public class Database {
      * @return 1 - if player's ip is blockaded on account, 0 - if player's ip is not locked or -1 if caught exception
      */
 
-    public int checkIpBlockade(String playerName, InetAddress address) {
+        public int checkIpBlockade(String playerName, InetAddress address) {
         String query = "SELECT * FROM ip_blockades" +
                 " WHERE player=(SELECT id FROM players WHERE LOWER(nick)=?)" +
                 " AND ip_address=?";
@@ -244,14 +244,11 @@ public class Database {
             ps.setString(1, playerName.toLowerCase());
             ps.setString(2, address.getHostAddress());
 
-            if(ps.executeQuery().next()) {
+            if(ps.executeQuery().next())
                 returnValue = 1;
-                System.out.println("hejo");
-            }
-            else {
+            else
                 returnValue = 0;
-                System.out.println("wujo");
-            }
+
         } catch (SQLException e) {
             e.printStackTrace();
             returnValue = -1;
