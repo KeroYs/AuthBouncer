@@ -35,7 +35,7 @@ public class PlayerInteraction implements Listener {
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (config.get().getBoolean("settings.login_attempt.moving_blockade"))
+        if (config.get().getBoolean("settings.login_attempt.interaction.moving_blockade"))
             if (!system.isPlayerLoggedIn(event.getPlayer().getName()))
                 if (isDifferentLocation(event.getFrom(), event.getTo())) {
                     event.setTo(event.getFrom());
@@ -49,23 +49,25 @@ public class PlayerInteraction implements Listener {
 
     @EventHandler
     public void onTeleportation(PlayerTeleportEvent event) {
-        if (!system.isPlayerLoggedIn(event.getPlayer().getName()))
-            event.setCancelled(true);
+        if(!config.get().getBoolean("settings.login_attempt.interaction.teleportation"))
+            if (!system.isPlayerLoggedIn(event.getPlayer().getName()))
+                event.setCancelled(true);
     }
 
     @EventHandler
     public void onItemClick(PlayerInteractEvent event) {
-        Action action = event.getAction();
-        PlayerInfo playerInfo = system.getPlayerInfo(event.getPlayer().getName());
-        boolean allowBookReading = config.get().getBoolean("settings.login_attempt.allow_book_reading");
-        if(!playerInfo.isLoggedIn()) {
-            if (allowBookReading)
-                if (action.equals(Action.RIGHT_CLICK_AIR) || action.equals(Action.RIGHT_CLICK_BLOCK))
-                    if (event.getItem().getType().equals(Material.WRITTEN_BOOK))
-                        return;
+            Action action = event.getAction();
+            PlayerInfo playerInfo = system.getPlayerInfo(event.getPlayer().getName());
+            boolean allowBookReading = config.get().getBoolean("settings.login_attempt.allow_book_reading");
+            boolean allowItemClick = config.get().getBoolean("settings.login_attempt.interaction.items.click");
+            if (!playerInfo.isLoggedIn()) {
+                if (allowBookReading)
+                    if (action.equals(Action.RIGHT_CLICK_AIR) || action.equals(Action.RIGHT_CLICK_BLOCK))
+                        if (event.getItem().getType().equals(Material.WRITTEN_BOOK))
+                            return;
 
-            event.setCancelled(true);
-        }
+                event.setCancelled(allowItemClick);
+            }
     }
 
     /**
@@ -75,12 +77,15 @@ public class PlayerInteraction implements Listener {
 
     @EventHandler
     public void onOpeningForeignEquipment(InventoryOpenEvent event) {
-        Inventory inv = event.getInventory();
-        PlayerInventory playerInv = event.getPlayer().getInventory();
-        if (!system.isPlayerLoggedIn(event.getPlayer().getName()))
-            if (!inv.getName().equals(playerInv.getName()))
-                event.setCancelled(true);
+        if (!config.get().getBoolean("settings.login_attempt.interaction.inventory.open_foreign")) {
+            Inventory inv = event.getInventory();
+            PlayerInventory playerInv = event.getPlayer().getInventory();
+            if (!system.isPlayerLoggedIn(event.getPlayer().getName()))
+                if (!inv.getName().equals(playerInv.getName()))
+                    event.setCancelled(true);
+        }
     }
+
 
     /**
      * Prevent moving or throwing items from player's equipment when player is not logged in
@@ -88,8 +93,9 @@ public class PlayerInteraction implements Listener {
 
     @EventHandler
     public void onMovingItems(InventoryClickEvent event) {
-        if(!system.isPlayerLoggedIn(event.getWhoClicked().getName()))
-            event.setCancelled(true);
+        if (!config.get().getBoolean("settings.login_attempt.interaction.inventory.moving_items"))
+            if (!system.isPlayerLoggedIn(event.getWhoClicked().getName()))
+                event.setCancelled(true);
     }
 
     /**
@@ -98,10 +104,10 @@ public class PlayerInteraction implements Listener {
 
     @EventHandler
     public void onPickingItemsUp(EntityPickupItemEvent event) {
-        if(event.getEntityType() == EntityType.PLAYER) {
-            if(!system.isPlayerLoggedIn(event.getEntity().getName()))
-                event.setCancelled(true);
-        }
+        if (!config.get().getBoolean("settings.login_attempt.interaction.items.picking"))
+            if (event.getEntityType() == EntityType.PLAYER)
+                if (!system.isPlayerLoggedIn(event.getEntity().getName()))
+                    event.setCancelled(true);
     }
 
     /**
@@ -110,8 +116,9 @@ public class PlayerInteraction implements Listener {
 
     @EventHandler
     public void onItemDrop(PlayerDropItemEvent event) {
-        if(!system.isPlayerLoggedIn(event.getPlayer().getName()))
-            event.setCancelled(true);
+        if (!config.get().getBoolean("settings.login_attempt.interaction.items.dropping"))
+            if (!system.isPlayerLoggedIn(event.getPlayer().getName()))
+                event.setCancelled(true);
     }
 
     private boolean isDifferentLocation(Location from, Location to) {
@@ -121,4 +128,5 @@ public class PlayerInteraction implements Listener {
         return true;
 
     }
+    
 }

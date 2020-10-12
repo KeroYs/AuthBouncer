@@ -67,8 +67,8 @@ public class LoginAttempt implements Listener {
             float soundMaxVolume = (float) config.get().getInt("settings.login_attempt.sound.max_volume") / 100;
             int soundPitch = config.get().getInt("settings.login_attempt.sound.pitch");
 
-            //Ip blockade
-            boolean isIpBlockadeON = config.get().getBoolean("settings.login_attempt.ip_blockade.blockade");
+            //Ip allow
+            boolean isIpBlockadeON = config.get().getBoolean("settings.login_attempt.ip_blockade.allow");
 
             new BukkitRunnable() {
 
@@ -116,7 +116,7 @@ public class LoginAttempt implements Listener {
         return new BukkitRunnable() {
             @Override
             public void run() {
-                boolean isLoginSessionAvailable = config.get().getBoolean("settings.session");
+                boolean isLoginSessionAvailable = config.get().getBoolean("settings.login_session");
                 passwordThreadSystem.lock(player.getName());
                 try {
                     Bukkit.getScheduler().runTask(plugin, () -> {
@@ -154,7 +154,7 @@ public class LoginAttempt implements Listener {
                 if(title.length() == 0 && subtitle.length() == 0)
                     cancel();
 
-                if(!event.isCancelled())
+                if(!event.isCancelled() && !playerInfo.isLoggedIn())
                     player.sendTitle(title, subtitle, fadeInTime, stayTime, fadeOutTime);
                 else
                     cancel();

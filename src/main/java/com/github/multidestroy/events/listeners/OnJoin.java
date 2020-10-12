@@ -74,16 +74,21 @@ public class OnJoin implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        System.out.println("Time of join: " + Instant.now().toEpochMilli());
         Player player = event.getPlayer();
         PlayerInfo playerInfo = system.getPlayerInfo(player.getName());
         playerInfo.setLoginStatus(false);
-        boolean isLoginSessionAvailable = config.get().getBoolean("settings.session");
-        //set player's GameMode to survival
-        if (player.getGameMode() != GameMode.SURVIVAL)
-            player.setGameMode(GameMode.SURVIVAL);
-        player.setHealth(20);
-        player.setFoodLevel(20);
+
+        boolean isLoginSessionAvailable = config.get().getBoolean("settings.login_session");
+        // Set player's food, health and GameMode according to plugin settings
+        if(!isLoginSessionAvailable || !playerInfo.isLoginSession()) {
+            if(config.get().getBoolean("settings.join.max_hunger"))
+                player.setFoodLevel(20);
+            if(config.get().getBoolean("settings.join.max_health"))
+                player.setHealth(20);
+            if(config.get().getBoolean("settings.join.gamemode.enforce"))
+                player.setGameMode(GameMode.valueOf(config.get().getString("settings.join.gamemode.default")));
+        }
+
     }
 
     /**
