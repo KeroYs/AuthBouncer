@@ -1,0 +1,4 @@
+name: AuthBouncer-BungeeCord
+version: ${Beta 1.1}
+main: com.github.multidestroy.MainPluginClass
+description: Plugin that sends information about player that enters bungeecord, to bukkit plugin on the server

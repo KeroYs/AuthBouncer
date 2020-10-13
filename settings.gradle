@@ -1,0 +1,3 @@
+include 'AuthBouncer-Bukkit'
+include 'AuthBouncer-BungeeCord'
+

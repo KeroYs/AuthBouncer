@@ -1,0 +1,13 @@
+# [ Set here settings of your lobby/hub server ]
+authorization_server:
+  # / Set name of the lobby/hub server \
+  name: 'lobby'
+  # / Move player to that server, every time he joins the BungeeCord's network \
+  force_login: true
+
+  # [ Blocking the use of the chat, if player is not authorized ]
+  bungee_command_lock:
+    # / Enable the blockade \
+    enable: true
+    # / Message sent to an unauthorized player while using chat \
+    message: '§cYou are not authorized!'
