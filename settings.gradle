@@ -1,3 +1,2 @@
-include 'AuthBouncer-Bukkit'
-include 'AuthBouncer-BungeeCord'
+rootProject.name = 'AuthBouncer'
 

@@ -1,0 +1,14 @@
+settings:
+  mail:
+    smtp:
+      auth: true
+      host:
+      port:
+      starttls:
+        enable: true
+  sender:
+    mail:
+    password:
+message:
+  topic: 'Authorization mail'
+  text: 'Default message'
