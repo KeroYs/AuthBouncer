@@ -39,12 +39,16 @@ public class PlayerInteraction implements Listener {
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (config.get().getBoolean("settings.login_attempt.interaction.moving_blockade"))
-            if (!system.isPlayerLoggedIn(event.getPlayer().getName()))
+        if (config.get().getBoolean("settings.login_attempt.interaction.moving_blockade")) {
+            if (!system.isPlayerLoggedIn(event.getPlayer().getName())) {
                 if (isDifferentLocation(event.getFrom(), event.getTo())) {
-                    event.setTo(event.getFrom());
+                    Location toGoBack = event.getFrom();
+                    toGoBack.setY(event.getPlayer().getWorld().getHighestBlockYAt(toGoBack));
+                    event.setTo(toGoBack);
                     event.setCancelled(true);
                 }
+            }
+        }
     }
 
     /**

@@ -12,12 +12,14 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class OnJoin implements Listener {
@@ -76,7 +78,6 @@ public class OnJoin implements Listener {
         PlayerInfo playerInfo = system.getPlayerInfo(player.getName());
         boolean isLoginSessionAvailable = config.get().getBoolean("settings.login_session.allow");
         boolean bungeeCord = config.get().getBoolean("settings.bungeecord");
-
 
         if (!isLoginSessionAvailable || !system.isLoginSession(player.getName(), player.getAddress().getAddress())) {
             if (config.get().getBoolean("settings.bungeecord"))

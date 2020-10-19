@@ -17,7 +17,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.time.Instant;
 
-class MainPluginClass extends JavaPlugin {
+public class MainPluginClass extends JavaPlugin {
 
     private Config config;
     private Database database;
@@ -56,8 +56,8 @@ class MainPluginClass extends JavaPlugin {
 
                     //Register plugin message channel, commands and events
                     if (config.get().getBoolean("settings.bungeecord")) {
-                        getServer().getMessenger().registerIncomingPluginChannel(this, "bouncer:channel", channelMessage);
-                        getServer().getMessenger().registerOutgoingPluginChannel(this, "bouncer:channel");
+                        getServer().getMessenger().registerIncomingPluginChannel(this, "authbouncer:channel", channelMessage);
+                        getServer().getMessenger().registerOutgoingPluginChannel(this, "authbouncer:channel");
                     }
                     registerCommands();
                     registerEvents();
