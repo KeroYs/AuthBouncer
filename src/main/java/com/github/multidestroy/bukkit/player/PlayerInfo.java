@@ -83,9 +83,11 @@ public class PlayerInfo {
         return loginStatus;
     }
 
-    @Deprecated
-    public boolean isLoginSession() {
-        return loginSession;
+    public boolean isLoginSession(InetAddress address) {
+        if (loginSession)
+            if (lastSuccessfulIp != null)
+                return lastSuccessfulIp.equals(address.getHostAddress());
+        return false;
     }
 
     /**

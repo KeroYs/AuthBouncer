@@ -155,7 +155,7 @@ public class PlayerInteraction implements Listener {
 
     private boolean isDifferentLocation(Location from, Location to) {
         if (from.getX() == to.getX())
-            if (from.getY() == to.getY())
+            if (from.getY() >= to.getY() && ( from.getBlockY() == to.getBlockY() || from.getBlockY() == to.getWorld().getHighestBlockYAt(to)))
                 return from.getZ() != to.getZ();
         return true;
 

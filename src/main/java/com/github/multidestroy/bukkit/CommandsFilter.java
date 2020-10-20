@@ -52,7 +52,7 @@ class CommandsFilter extends AbstractFilter {
     private Result isLoggable(String message) {
         if (message != null) {
             if (message.contains("issued server command:")) {
-                if (Utils.containsCommand(message, "login", plugin) ||
+                    if (Utils.containsCommand(message, "login", plugin) ||
                         Utils.containsCommand(message, "register", plugin) ||
                         Utils.containsCommand(message, "changepassword", plugin) ||
                         Utils.containsCommand(message, "setemail", plugin) ||

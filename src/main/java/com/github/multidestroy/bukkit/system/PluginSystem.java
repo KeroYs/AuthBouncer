@@ -46,10 +46,7 @@ public class PluginSystem {
 
     public boolean isLoginSession(String playerName, InetAddress address) {
         PlayerInfo playerInfo = system.get(playerName.toLowerCase());
-        if (playerInfo.isLoginSession())
-            if (playerInfo.getLastSuccessfulIp() != null)
-                return playerInfo.getLastSuccessfulIp().equals(address.getHostAddress());
-        return false;
+        return playerInfo.isLoginSession(address);
     }
 
     public boolean isPlayerRegistered(String playerName) {

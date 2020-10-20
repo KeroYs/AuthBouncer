@@ -27,10 +27,16 @@ public class Utils {
 
     static boolean containsCommand(String message, String command, JavaPlugin plugin) {
         List<String> aliases = plugin.getCommand(command).getAliases();
-        if (!message.contains(command)) {
-            for (String alias : aliases)
-                if (message.contains(alias))
+        int indexOfSlash = message.indexOf('/');
+        if (indexOfSlash != -1)
+            message = message.substring(indexOfSlash + 1);
+        else
+            return false;
+        if (!message.startsWith(command + " ")) {
+            for (String alias : aliases) {
+                if (message.contains(alias + " ") || (message.startsWith(alias) && message.length() == alias.length()))
                     return true;
+            }
             return false;
         }
         return true;

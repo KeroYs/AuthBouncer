@@ -7,7 +7,6 @@ import com.github.multidestroy.bukkit.commands.email.changeemail.ChangeEmail;
 import com.github.multidestroy.bukkit.commands.email.setemail.SetEmail;
 import com.github.multidestroy.bukkit.database.Database;
 import com.github.multidestroy.bukkit.events.LoginAttemptEvent;
-import com.github.multidestroy.bukkit.events.LoginAttemptType;
 import com.github.multidestroy.bukkit.events.listeners.*;
 import com.github.multidestroy.bukkit.i18n.Messages;
 import com.github.multidestroy.bukkit.player.PlayerInfo;
@@ -95,7 +94,7 @@ public class MainBukkitClass extends JavaPlugin {
     }
 
     private void registerCommands() {
-        getCommand("register").setExecutor(new Register(system, database, config, passwordHasher, passwordThreadSystem, this));
+        getCommand("register").setExecutor(new Register(system, database, config, passwordHasher, passwordThreadSystem, channelMessage, this));
         getCommand("login").setExecutor(new Login(system, database, config, passwordThreadSystem, this, channelMessage));
         getCommand("changepassword").setExecutor(new ChangePassword(system, database, config, passwordHasher, passwordThreadSystem, this));
 
@@ -119,7 +118,7 @@ public class MainBukkitClass extends JavaPlugin {
     }
 
     private void registerEvents() {
-        getServer().getPluginManager().registerEvents(new OnJoin(system, database, config, this, passwordThreadSystem), this);
+        getServer().getPluginManager().registerEvents(new OnJoin(system, database, config, channelMessage), this);
         getServer().getPluginManager().registerEvents(new OnChat(system, this), this);
         getServer().getPluginManager().registerEvents(new LoginAttempt(system, this, passwordThreadSystem, config), this);
         getServer().getPluginManager().registerEvents(new PlayerInteraction(system, config), this);
@@ -137,8 +136,9 @@ public class MainBukkitClass extends JavaPlugin {
             else
                 system.saveNewPlayer(player.getName(), playerInfo = new PlayerInfo()); //player has never registered
 
-            LoginAttemptType loginAttemptType = playerInfo.isRegistered() ? LoginAttemptType.LOGIN : LoginAttemptType.REGISTER;
-            Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player, loginAttemptType));
+            if (config.get().getBoolean("settings.bungeecord"))
+                channelMessage.sendLoginStatusChangeMessage(player, false);
+            Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player, playerInfo, config, channelMessage, false));
         });
     }
 }

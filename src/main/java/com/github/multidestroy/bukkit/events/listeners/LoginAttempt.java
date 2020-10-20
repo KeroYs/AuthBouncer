@@ -44,13 +44,16 @@ public class LoginAttempt implements Listener {
 
     @EventHandler
     public void loginAttempt(LoginAttemptEvent event) {
+
+        if (event.isCancelled())
+            return;
+
         Player player = event.getPlayer();
         PlayerInfo playerInfo = system.getPlayerInfo(player.getName());
         InetAddress ipAddress = player.getAddress().getAddress();
         LoginAttemptType loginAttemptType = event.getType();
         final int[] iteration = {1};
         int time = config.get().getInt("settings.login_attempt.time");
-        float subtrahend = 1f / (float) time;
 
         setPotionEffects(player, time);
         {

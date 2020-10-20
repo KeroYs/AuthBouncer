@@ -1,17 +1,14 @@
 package com.github.multidestroy.bukkit.events.listeners;
 
+import com.github.multidestroy.bukkit.ChannelMessenger;
 import com.github.multidestroy.bukkit.Config;
-import com.github.multidestroy.bukkit.i18n.Messages;
 import com.github.multidestroy.bukkit.database.Database;
 import com.github.multidestroy.bukkit.events.LoginAttemptEvent;
-import com.github.multidestroy.bukkit.events.LoginAttemptType;
+import com.github.multidestroy.bukkit.i18n.Messages;
 import com.github.multidestroy.bukkit.player.PlayerInfo;
 import com.github.multidestroy.bukkit.system.PluginSystem;
 import com.github.multidestroy.bukkit.system.ThreadSystem;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,11 +22,13 @@ public class OnJoin implements Listener {
     private final PluginSystem system;
     private final Database database;
     private final Config config;
+    private ChannelMessenger channelMessenger;
 
-    public OnJoin(PluginSystem system, Database database, Config config, JavaPlugin plugin, ThreadSystem passwordThreadSystem) {
+    public OnJoin(PluginSystem system, Database database, Config config, ChannelMessenger channelMessenger) {
         this.system = system;
         this.database = database;
         this.config = config;
+        this.channelMessenger = channelMessenger;
     }
 
     /**
@@ -72,31 +71,10 @@ public class OnJoin implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        PlayerInfo playerInfo = system.getPlayerInfo(player.getName());
-        boolean isLoginSessionAvailable = config.get().getBoolean("settings.login_session.allow");
-        boolean bungeeCord = config.get().getBoolean("settings.bungeecord");
+        boolean isBungeeCord = config.get().getBoolean("settings.bungeecord");
 
-        if (!isLoginSessionAvailable || !system.isLoginSession(player.getName(), player.getAddress().getAddress())) {
-            if (config.get().getBoolean("settings.bungeecord"))
-                playerInfo.setLoginStatus(false);
-
-
-            // Set player's food, health and GameMode according to plugin settings
-            if (config.get().getBoolean("settings.join.max_hunger"))
-                player.setFoodLevel(20);
-            if (config.get().getBoolean("settings.join.max_health"))
-                player.setHealth(20);
-            if (config.get().getBoolean("settings.join.gamemode.enforce"))
-                player.setGameMode(GameMode.valueOf(config.get().getString("settings.join.gamemode.default")));
-        }
-
-        if (isLoginSessionAvailable && system.isLoginSession(player.getName(), player.getAddress().getAddress())) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(Messages.getColoredString("SESSION.ENABLE")));
-        } else {
-            LoginAttemptType loginAttemptType = playerInfo.isRegistered() ? LoginAttemptType.LOGIN : LoginAttemptType.REGISTER;
-            Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player, loginAttemptType));
-        }
+        if (isBungeeCord)
+            callLoginAttempt(event.getPlayer());
     }
 
     /**
@@ -107,6 +85,13 @@ public class OnJoin implements Listener {
     public void missedPreLoginEvent(PlayerLoginEvent event) {
         if (!system.isPlayerInSystem(event.getPlayer().getName()))
             event.disallow(PlayerLoginEvent.Result.KICK_OTHER, Messages.getColoredString("EVENT.PRELOGIN.MISSED"));
+    }
+
+    private void callLoginAttempt(Player player) {
+        PlayerInfo playerInfo = system.getPlayerInfo(player.getName());
+
+        Bukkit.getPluginManager().callEvent(
+                new LoginAttemptEvent(player, playerInfo, config, channelMessenger, false));
     }
 
 }

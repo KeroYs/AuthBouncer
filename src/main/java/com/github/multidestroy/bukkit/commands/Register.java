@@ -1,5 +1,6 @@
 package com.github.multidestroy.bukkit.commands;
 
+import com.github.multidestroy.bukkit.ChannelMessenger;
 import com.github.multidestroy.bukkit.Config;
 import com.github.multidestroy.bukkit.i18n.Messages;
 import com.github.multidestroy.bukkit.PasswordHasher;
@@ -18,6 +19,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Instant;
 
@@ -28,14 +30,16 @@ public class Register implements CommandExecutor {
     private final PasswordHasher passwordHasher;
     private final Config config;
     private final ThreadSystem threadSystem;
+    private ChannelMessenger channelMessenger;
     private final JavaPlugin plugin;
 
-    public Register(PluginSystem system, Database database, Config config, PasswordHasher passwordHasher, ThreadSystem threadSystem, JavaPlugin plugin) {
+    public Register(PluginSystem system, Database database, Config config, PasswordHasher passwordHasher, ThreadSystem threadSystem, ChannelMessenger channelMessenger, JavaPlugin plugin) {
         this.system = system;
         this.database = database;
         this.passwordHasher = passwordHasher;
         this.config = config;
         this.threadSystem = threadSystem;
+        this.channelMessenger = channelMessenger;
         this.plugin = plugin;
     }
 
@@ -72,10 +76,11 @@ public class Register implements CommandExecutor {
                                 playerActivityStatus = PlayerActivityStatus.REGISTRATION;
 
 
-                                if (config.get().getBoolean("settings.login_attempt.login_after_registration")) //Player has to log in after registration
-                                    Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player, LoginAttemptType.LOGIN));
-                                else {
+                                if (config.get().getBoolean("settings.login_attempt.login_after_registration")) { //Player has to log in after registration
+                                    callLoginAttemptEvent(player, playerInfo);
+                                } else {
                                     playerInfo.setLoginStatus(true);
+                                    channelMessenger.sendLoginStatusChangeMessage(player, true);
                                     LoginAttemptEvent.endLoginAttempt(player, playerInfo);
                                     playerInfo.setLastSuccessfulIp(player.getAddress().getAddress());
                                     if (config.get().getBoolean("settings.login_session.allow"))
@@ -96,6 +101,16 @@ public class Register implements CommandExecutor {
             if (playerActivityStatus != null)
                 database.saveLoginAttempt(player, playerActivityStatus, Instant.now());
         };
+    }
+
+    private void callLoginAttemptEvent(Player player, PlayerInfo playerInfo) {
+        new BukkitRunnable() {
+
+            @Override
+            public void run() {
+                Bukkit.getPluginManager().callEvent(new LoginAttemptEvent(player, playerInfo, config, channelMessenger, false));
+            }
+        }.runTask(plugin);
     }
 
 }

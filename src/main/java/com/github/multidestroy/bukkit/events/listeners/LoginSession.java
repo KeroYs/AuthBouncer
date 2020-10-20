@@ -37,7 +37,7 @@ public class LoginSession implements Listener {
 
             @Override
             public void run() {
-                if (!player.isOnline() || playerInfo.isLoginSession())
+                if (!player.isOnline() || playerInfo.isLoginSession(player.getAddress().getAddress()))
                     cancel();
                 else if (i[0] != limit) {
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
@@ -47,6 +47,10 @@ public class LoginSession implements Listener {
                     cancel();
             }
         }.runTaskTimer(plugin, 0, 20);
-
     }
+
+    public static boolean isLoginSessionAvailable(Config config) {
+        return config.get().getBoolean("settings.login_session.allow");
+    }
+
 }
